@@ -1,0 +1,51 @@
+max(b1, b2)
+non-correl
+
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 5 :
+	- En moyenne : 41 noeuds visités
+	- Temps moyen : 0.02s
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 6 :
+	- En moyenne : 71 noeuds visités
+	- Temps moyen : 0.03s
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 7 :
+	- En moyenne : 174 noeuds visités
+	- Temps moyen : 0.06s
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 8 :
+	- En moyenne : 534 noeuds visités
+	- Temps moyen : 0.17s
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 9 :
+	- En moyenne : 1629 noeuds visités
+	- Temps moyen : 0.57s
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 10 :
+	- En moyenne : 1129 noeuds visités
+	- Temps moyen : 0.45s
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 12 :
+	- En moyenne : 260860 noeuds visités
+	- Temps moyen : 83.91s
+
+--------------------------------------------------
+Test (non-correl) sur 20 essaies, instance de taille 15 :
+	- En moyenne : 1681440 noeuds visités
+	- Temps moyen : 544.11s
+
+Run numero 2^C
+--------------------------------------------------
+550694457 noeuds visités en 9472.74s.
+Ordonnancement optimal : 
+[ 1, 5, 2, 3, 4, 11, 13, 20, 10, 16, 12, 15, 7, 18, 19, 8, 9, 17, 14, 6 ]
+Temps total de l'ordonnancement optimal : 1257
+
