@@ -52,14 +52,14 @@ class BriandaisTree(object):
         return False
 
     # Return the number of words.
-    def number_words(self, key = None):
+    def number_words(self):
         number = 0
         if self.sons == []:
             if self.final == True: # On a leaf.
                 number += 1
         else:
             for son in self.sons:
-                number += son.number_words(str(key) + str(self.key))
+                number += son.number_words()
             if self.final == True: # On a word.
                 number += 1
         return number
@@ -96,10 +96,10 @@ class BriandaisTree(object):
 
     # Return the average height of the tree.
     def average_height(self):
-        average = -1.0
+        average = 0.0
         for son in self.sons:
             temp = son.average_height()
-            if average < 0: # Initialization.
+            if average == 0.0: # Initialization.
                 average = temp
             else:
                 average = round((average + temp) / 2, 2)
