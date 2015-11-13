@@ -87,6 +87,7 @@ class TernarySearchTree(object):
                     return False
             if self.equal != None:  # Search for the rest of word.
                 return self.equal.contains(word[1:])
+            return False
         else:
             return False
 
@@ -201,7 +202,40 @@ class TernarySearchTree(object):
 
     # Suppress the word from the tree.
     def suppress(self, word):
-        pass
+        word = word.lower()
+        if len(word) == 0: # Impossible, so return False.
+            return None
+
+        if self.key == word[0]: # Equal.
+            if len(word) == 1: # On a leaf.
+                if self.right == None and self.left == None and self.equal == None:
+                    if self.final == True: # If the word exists.
+                        self.final = False
+                        return True # Suppress
+                    return None
+                else:
+                    self.final = False # Suppress but keep structure.
+                    return None
+
+            if self.equal != None:
+                suppr = self.equal.suppress(word[1:]) # Recursively suppress.
+                if suppr == True:
+                    self.equal = None # Suppress son.
+                if self.right == None and self.left == None and self.equal == None:
+                    # If letter is terminal, we could suppress another word.
+                    if self.final == False:
+                        return True
+                return None
+        elif self.key < word[0]: # Recursively suppress.
+            if self.right != None:
+                self.right.suppress(word)
+            return None
+        elif self.key > word[0]: # Recursively suppress.
+            if self.left != None:
+                self.left.suppress(word)
+            return None
+        else:
+            return None
 
     # Add a string representation.
     def spaces(self, nb):
@@ -241,16 +275,3 @@ def Prefixe(tree, word):
     return tree.prefix(word)
 def Suppression(tree, word):
     return tree.suppress(word)
-
-tree = TernarySearchTree()
-for word in example.split(' '):
-    tree.add_word(word)
-print(tree.contains('dactylographie'))
-print(tree.number_words())
-print(tree.all_words())
-print(ComptageNil(tree))
-print(Hauteur(tree))
-print(ProfondeurMoyenne(tree))
-print(Prefixe(tree, 'ap'))
-Suppression(tree, 'dactylo')
-print(tree.contains('dactylo'))

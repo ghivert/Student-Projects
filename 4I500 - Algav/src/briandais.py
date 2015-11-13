@@ -27,13 +27,14 @@ class BriandaisTree(object):
 
     # Add a word to the tree.
     def add_word(self, word):
+        word = word.lower()
         if len(word) == 0: # If the word is a prefix of an existing word.
             self.final = True
         else:
             for son in self.sons:
-                if son.key == word[0].lower():
-                    return son.add_word(word[1:].lower())
-            self.sons.append(BriandaisTree(word[1:].lower(), word[0].lower()))
+                if son.key == word[0]:
+                    return son.add_word(word[1:])
+            self.sons.append(BriandaisTree(word[1:], word[0]))
 
     # Test if the tree is empty.
     def is_empty(self):
@@ -44,11 +45,12 @@ class BriandaisTree(object):
 
     # Test if tree contains the word.
     def contains(self, word):
+        word = word.lower()
         if len(word) == 0:
             return True
         for son in self.sons:
-            if son.key == word[0].lower():
-                return son.contains(word[1:].lower())
+            if son.key == word[0]:
+                return son.contains(word[1:])
         return False
 
     # Return the number of words.
@@ -107,6 +109,7 @@ class BriandaisTree(object):
 
     # Get all words which start by the word.
     def prefix(self, word):
+        word = word.lower()
         answer = []
         def get_all(tree, word, pref = ''):
             if len(word) == 0:
@@ -123,22 +126,23 @@ class BriandaisTree(object):
                         answer.append(pref + word) # Add the word cause it's final.
                     for son in tree.sons: # Recursively search every other words.
                         get_all(son, word[1:], pref + tree.key)
-        get_all(self, word.lower())
+        get_all(self, word)
         return answer
 
     # Delete a word from the tree.
     def suppress(self, word):
+        word = word.lower()
         if self.key == None: # On the root.
             for son in self.sons:
-                suppr = son.suppress(word.lower())
+                suppr = son.suppress(word)
                 if suppr == True:
                     self.sons.remove(son) # Suppression to keep compacity.
         else: # Everywhere else.
             if len(word) == 0: # Son of the word to suppress.
                 return False
-            if self.key == word[0].lower(): # In the prefix.
+            if self.key == word[0]: # In the prefix.
                 for son in self.sons:
-                    suppr = son.suppress(word[1:].lower())
+                    suppr = son.suppress(word[1:])
                     if suppr == True:
                         self.sons.remove(son) # Suppression to keep compacity.
                 if self.sons == []:
