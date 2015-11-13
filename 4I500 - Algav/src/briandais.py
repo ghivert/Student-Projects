@@ -25,8 +25,8 @@ class BriandaisTree(object):
         else:
             self.add_word(word.lower())
 
-    # Add a word to the tree.
     def add_word(self, word):
+        """Add a word to the tree."""
         word = word.lower()
         if len(word) == 0: # If the word is a prefix of an existing word.
             self.final = True
@@ -36,15 +36,15 @@ class BriandaisTree(object):
                     return son.add_word(word[1:])
             self.sons.append(BriandaisTree(word[1:], word[0]))
 
-    # Test if the tree is empty.
     def is_empty(self):
+        """Test if the tree is empty."""
         if key == None and self.sons == []:
             return True
         else:
             return False
 
-    # Test if tree contains the word.
     def contains(self, word):
+        """Test if tree contains the word."""
         word = word.lower()
         if len(word) == 0:
             return True
@@ -53,8 +53,8 @@ class BriandaisTree(object):
                 return son.contains(word[1:])
         return False
 
-    # Return the number of words.
     def number_words(self):
+        """Return the number of words."""
         number = 0
         if self.sons == []:
             if self.final == True: # On a leaf.
@@ -66,8 +66,8 @@ class BriandaisTree(object):
                 number += 1
         return number
 
-    # Return all the words of the tree.
     def all_words(self):
+        """Return all the words of the tree."""
         list = []
         def get_all(tree, word = ''):
             tree.sons.sort(key = lambda x: x.key)
@@ -85,8 +85,8 @@ class BriandaisTree(object):
         get_all(self)
         return list
 
-    # Return the height of the tree.
     def height(self):
+        """Return the height of the tree."""
         height = 0
         for son in self.sons:
             temp = son.height()
@@ -96,8 +96,8 @@ class BriandaisTree(object):
             return height + 1
         return height
 
-    # Return the average height of the tree.
     def average_height(self):
+        """Return the average height of the tree."""
         average = 0.0
         for son in self.sons:
             temp = son.average_height()
@@ -107,8 +107,8 @@ class BriandaisTree(object):
                 average = round((average + temp) / 2, 2)
         return round(average + 1)
 
-    # Get all words which start by the word.
     def prefix(self, word):
+        """Get all words which start by the word."""
         word = word.lower()
         answer = []
         def get_all(tree, word, pref = ''):
@@ -129,8 +129,8 @@ class BriandaisTree(object):
         get_all(self, word)
         return answer
 
-    # Delete a word from the tree.
     def suppress(self, word):
+        """Delete a word from the tree."""
         word = word.lower()
         if self.key == None: # On the root.
             for son in self.sons:
@@ -151,15 +151,15 @@ class BriandaisTree(object):
                     self.final = False
                     return False
 
-    # Add all words from the tree into itself.
     def merge(self, tree):
+        """Add all words from the tree into itself."""
         # The easy way...
         words = tree.all_words()
         for word in words:
             self.add_word(word)
 
-    # Add a string representation.
     def spaces(self, nb):
+        """Add a string representation."""
         string = " " * nb + str(self.key) + " " + str(self.final) + "\n"
         for i in self.sons:
             string += i.spaces(nb + 2)
@@ -167,8 +167,8 @@ class BriandaisTree(object):
     def __repr__(self):
         return self.spaces(0)
 
-# Merge two trees into one.
 def merge(first, second):
+    """Merge two trees into one."""
     # The complex way...
 
     if first.key != second.key: # Can't append, but in case...

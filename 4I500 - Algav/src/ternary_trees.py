@@ -24,8 +24,8 @@ class TernarySearchTree(object):
         if word != None:
             self.add_word(word.lower())
 
-    # Add a word to the tree.
     def add_word(self, word):
+        """Add a word to the tree."""
         word = word.lower()
         if len(word) == 0:
             return None
@@ -59,14 +59,14 @@ class TernarySearchTree(object):
             else:
                 self.right.add_word(word)
 
-    # Test if the tree is empty.
     def is_empty(self):
+        """Test if the tree is empty."""
         if self.left == None and self.equal == None and self.right == None and self.key == None:
             return True
         return False
 
-    # Test if tree contains the word.
     def contains(self, word):
+        """Test if tree contains the word."""
         word = word.lower()
         # Word is empty or tree is empty.
         if len(word) == 0:
@@ -91,8 +91,8 @@ class TernarySearchTree(object):
         else:
             return False
 
-    # Return the number of words. Just search for final tag.
     def number_words(self):
+        """Return the number of words. Just search for final tag."""
         number = 0
         if self.left != None:
             number += self.left.number_words()
@@ -104,8 +104,8 @@ class TernarySearchTree(object):
             number += 1
         return number
 
-    # Return all the words in the tree.
     def all_words(self):
+        """Return all the words in the tree."""
         words = []
         def get_all(tree, buffer = ''):
             if tree.key == None:
@@ -123,8 +123,8 @@ class TernarySearchTree(object):
         get_all(self)
         return words
 
-    # Get the height of the tree.
     def height(self):
+        """Get the height of the tree."""
         if self.key == None:
             return 0
         number = 0
@@ -142,8 +142,8 @@ class TernarySearchTree(object):
                 number = temp
         return number + 1
 
-    # Get the average height of the tree.
     def average_height(self):
+        """Get the average height of the tree."""
         average = 0.0
         if self.left != None:
             average = self.left.average_height()
@@ -161,12 +161,12 @@ class TernarySearchTree(object):
                 average = round((average + temp) / 2, 2)
         return round(average + 1)
 
-    # Get all words which prefix is word.
     def prefix(self, word):
+        """Get all words which prefix is word."""
         word = word.lower()
 
-        # Factory to map a list[str] and add prefix.
         def create_map(pref):
+            """Factory to map a list[str] and add prefix."""
             def add_pref(word):
                 return pref + word
             return add_pref
@@ -200,8 +200,8 @@ class TernarySearchTree(object):
             return answer
         return get_all(self, word)
 
-    # Suppress the word from the tree.
     def suppress(self, word):
+        """Suppress the word from the tree."""
         word = word.lower()
         if len(word) == 0: # Impossible, so return False.
             return None
@@ -237,8 +237,8 @@ class TernarySearchTree(object):
         else:
             return None
 
-    # Add a string representation.
     def spaces(self, nb):
+        """Add a string representation."""
         string = " " * nb + str(self.final) + " " + str(self.key) + "\n"
         if self.left != None:
             string += self.left.spaces(nb + 2)
