@@ -1,20 +1,29 @@
+"""Module de gestion des arbres de la briandais. BriandaisTree est la classe
+associée, et des fonctions de gestion existe afin de manipuler l'arbre de manière
+non POO."""
+
 import string
 
-exemple = "A quel genial professeur de dactylographie sommes-nous redevables de la superbe phrase ci-dessous, un modele du genre, que toute dactylo connait par coeur puisque elle fait appel a chacune des touches du clavier de la machine a ecrire ?";
+EXEMPLE = "A quel genial professeur de dactylographie sommes-nous redevables de \
+la superbe phrase ci-dessous, un modele du genre, que toute dactylo connait par \
+coeur puisque elle fait appel a chacune des touches du clavier de la machine a ecrire ?"
 
 def only_alpha():
+    """Convert unicode string to ascii string without punctuations."""
     rstring = ""
-    for word in exemple:
+    for word in EXEMPLE:
         for letter in word:
-            if (letter in string.ascii_lowercase) or (letter in string.ascii_uppercase) or (letter == ' ') or (letter == '-'):
+            if (letter in string.ascii_lowercase) or \
+            (letter in string.ascii_uppercase) or \
+            (letter == ' ') or (letter == '-'):
                 rstring += letter
     return rstring
 
-example = only_alpha()
+EXAMPLE = only_alpha()
 
 class BriandaisTree(object):
     """Represent a Briandais Tree, a tree to stock an entire dictionnary."""
-    def __init__(self, word, key = None):
+    def __init__(self, word, key=None):
         self.key = key # Keep the key.
         self.sons = []
         self.final = False
@@ -38,7 +47,7 @@ class BriandaisTree(object):
 
     def is_empty(self):
         """Test if the tree is empty."""
-        if key == None and self.sons == []:
+        if self.key is None and self.sons == []:
             return True
         else:
             return False
@@ -57,33 +66,34 @@ class BriandaisTree(object):
         """Return the number of words."""
         number = 0
         if self.sons == []:
-            if self.final == True: # On a leaf.
+            if self.final is True: # On a leaf.
                 number += 1
         else:
             for son in self.sons:
                 number += son.number_words()
-            if self.final == True: # On a word.
+            if self.final is True: # On a word.
                 number += 1
         return number
 
     def all_words(self):
         """Return all the words of the tree."""
-        list = []
-        def get_all(tree, word = ''):
-            tree.sons.sort(key = lambda x: x.key)
+        words = []
+        def get_all(tree, word=''):
+            """Get all words of the tree."""
+            tree.sons.sort(key=lambda x: x.key)
             if tree.sons == []: # On a leaf.
-                if tree.final == True and tree.key != None: # Word is final.
-                    list.append(word + str(tree.key))
+                if tree.final is True and tree.key is not None: # Word is final.
+                    words.append(word + str(tree.key))
             else: # Everywhere else in the tree.
-                if tree.final == True and tree.key != None:
-                    list.append(word + str(tree.key))
+                if tree.final is True and tree.key is not None:
+                    words.append(word + str(tree.key))
                 for son in tree.sons:
-                    if tree.key == None: # On the root.
+                    if tree.key is None: # On the root.
                         get_all(son, word)
                     else: # Everywhere else in the tree.
                         get_all(son, word + str(tree.key))
         get_all(self)
-        return list
+        return words
 
     def height(self):
         """Return the height of the tree."""
@@ -111,18 +121,19 @@ class BriandaisTree(object):
         """Get all words which start by the word."""
         word = word.lower()
         answer = []
-        def get_all(tree, word, pref = ''):
+        def get_all(tree, word, pref=''):
+            """Get all words which start by the word."""
             if len(word) == 0:
-                if tree.final == True: # On a word which is prefixed by word.
+                if tree.final is True: # On a word which is prefixed by word.
                     answer.append(pref + tree.key)
                 for son in tree.sons: # Recursively search every other words.
                     get_all(son, word, pref + tree.key)
-            elif tree.key == None: # On the root.
+            elif tree.key is None: # On the root.
                 for son in tree.sons: # Recursively search every words.
                     get_all(son, word, pref)
             else: # Everywhere else in the tree.
                 if tree.key == word[0]:
-                    if tree.final == True and len(word) == 1:
+                    if tree.final is True and len(word) == 1:
                         answer.append(pref + word) # Add the word cause it's final.
                     for son in tree.sons: # Recursively search every other words.
                         get_all(son, word[1:], pref + tree.key)
@@ -132,10 +143,10 @@ class BriandaisTree(object):
     def suppress(self, word):
         """Delete a word from the tree."""
         word = word.lower()
-        if self.key == None: # On the root.
+        if self.key is None: # On the root.
             for son in self.sons:
                 suppr = son.suppress(word)
-                if suppr == True:
+                if suppr is True:
                     self.sons.remove(son) # Suppression to keep compacity.
         else: # Everywhere else.
             if len(word) == 0: # Son of the word to suppress.
@@ -143,7 +154,7 @@ class BriandaisTree(object):
             if self.key == word[0]: # In the prefix.
                 for son in self.sons:
                     suppr = son.suppress(word[1:])
-                    if suppr == True:
+                    if suppr is True:
                         self.sons.remove(son) # Suppression to keep compacity.
                 if self.sons == []:
                     return True # Can be removed.
@@ -158,12 +169,12 @@ class BriandaisTree(object):
         for word in words:
             self.add_word(word)
 
-    def spaces(self, nb):
+    def spaces(self, number):
         """Add a string representation."""
-        string = " " * nb + str(self.key) + " " + str(self.final) + "\n"
+        rstring = " " * number + str(self.key) + " " + str(self.final) + "\n"
         for i in self.sons:
-            string += i.spaces(nb + 2)
-        return string
+            rstring += i.spaces(number + 2)
+        return rstring
     def __repr__(self):
         return self.spaces(0)
 
@@ -176,11 +187,12 @@ def merge(first, second):
 
     tree = BriandaisTree('') # Instantiate new tree.
     tree.key = first.key # Keep the key.
-    tree.final = True if first.final == True or second.final == True else False
-    i = 0; j = 0
+    tree.final = True if first.final is True or second.final is True else False
+    i = 0
+    j = 0
     # Sort the sons.
-    first.sons.sort(key = lambda x: x.key)
-    second.sons.sort(key = lambda x: x.key)
+    first.sons.sort(key=lambda x: x.key)
+    second.sons.sort(key=lambda x: x.key)
 
     # If one tree is empty, keep everything else.
     if len(first.sons) == 0:
@@ -202,19 +214,25 @@ def merge(first, second):
             j += 1
         else:
             tree.sons.append(merge(first.sons[i], second.sons[j]))
-            i += 1; j += 1
+            i += 1
+            j += 1
     return tree
 
 # Functions to comply the specifications...
 def BriandaisTreeVide():
+    """Retourne un arbre de la briandais vide."""
     return BriandaisTree('')
 def NouveauBriandaisTree(word):
+    """Retourne un arbre de la briandais initialisé avec le mot word."""
     return BriandaisTree(word)
 def Recherche(tree, word):
+    """Recherche le mot word dans l'arbre tree et indique s'il est dans l'arbre."""
     return tree.contains(word)
 def ComptageMot(tree):
+    """Retourne le nombre de mots de l'arbre tree."""
     return tree.number_words()
 def ComptageNil(tree):
+    """Compte le nombre de pointeurs nuls de l'arbre tree."""
     if tree.is_empty:
         return 1
     else:
@@ -223,13 +241,18 @@ def ComptageNil(tree):
             number += ComptageNil(son)
         return number
 def Hauteur(tree):
+    """Retourne la hauteur de l'arbre tree."""
     return tree.height()
 def ProfondeurMoyenne(tree):
+    """Retourne la hauteur moyenne de l'arbre tree."""
     return tree.average_height()
 def Prefixe(tree, word):
+    """Retourne tous les mots de l'arbre tree commençant par le préfixe word."""
     return tree.prefix(word)
 def Suppression(tree, word):
+    """Supprime le mot word de l'arbre tree s'il existe."""
     tree.suppress(word)
     return tree
 def Fusion(arbre1, arbre2):
+    "Fusionne les deux arbres arbre1 et arbre2 et retourne un nouvel arbre."
     return merge(arbre1, arbre2)
