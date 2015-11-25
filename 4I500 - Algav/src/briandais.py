@@ -23,144 +23,200 @@ EXAMPLE = only_alpha()
 
 class BriandaisTree(object):
     """Represent a Briandais Tree, a tree to stock an entire dictionnary."""
-    def __init__(self, word, key=None):
-        self.key = key # Keep the key.
-        self.sons = []
+    def __init__(self, word=None, brother=None):
+        self.key = None
+        self.child = None
+        self.brother = brother
         self.final = False
 
-        if len(word) == 0:
-            if self.key != None:
-                self.final = True
-        else:
-            self.add_word(word.lower())
+        if word is not None:
+            self.add_word(word)
 
     def add_word(self, word):
         """Add a word to the tree."""
         word = word.lower()
-        if len(word) == 0: # If the word is a prefix of an existing word.
-            self.final = True
+        if len(word) == 0: # Empty word.
+            return None
+
+        if self.key is None: # On the root uninitialized.
+            self.key = word[0] # Empty tree, so add root.
+            if len(word) == 1: # Word is over.
+                self.final = True
+            else: # Recursively add.
+                self.child = BriandaisTree(word[1:])
+        elif word[0] == self.key: # Tree already full.
+            if len(word) == 1: # Word is over.
+                self.final = True
+            else: # Recursively add. New tree if child empty.
+                if self.child is None:
+                    self.child = BriandaisTree(word[1:])
+                else:
+                    self.child.add_word(word[1:])
+
+        # Insert at the right place.
         else:
-            for son in self.sons:
-                if son.key == word[0]:
-                    return son.add_word(word[1:])
-            self.sons.append(BriandaisTree(word[1:], word[0]))
+            if self.brother is None: # No brother, add it.
+                self.brother = BriandaisTree(word)
+            elif self.brother.key > word[0]: # Next brother follow the word.
+                thing = self.brother
+                self.brother = BriandaisTree(word, thing)
+            else: # Continue.
+                self.brother.add_word(word)
 
     def is_empty(self):
         """Test if the tree is empty."""
-        if self.key is None and self.sons == []:
+        if self.key is None and self.child is None and self.brother is None:
             return True
-        else:
-            return False
 
     def contains(self, word):
         """Test if tree contains the word."""
         word = word.lower()
-        if len(word) == 0:
+        if len(word) == 0: # Empty IS in the tree. But it could not be. What do you prefer ?
             return True
-        for son in self.sons:
-            if son.key == word[0]:
-                return son.contains(word[1:])
-        return False
+        if self.key is None: # On an uninitialized tree.
+            return False
+
+        if self.key == word[0]: # On the correct branch.
+            if len(word) == 1: # Word is over.
+                if self.final is True: # Word exists.
+                    return True
+                else: # Word doesn't exists.
+                    return False
+            if self.child is not None: # Word not over, continue to search.
+                return self.child.contains(word[1:])
+            return False # No child. Too bad.
+        elif self.brother is not None: # Continue to search on branch.
+            return self.brother.contains(word)
+        else:
+            return False
 
     def number_words(self):
         """Return the number of words."""
         number = 0
-        if self.sons == []:
-            if self.final is True: # On a leaf.
-                number += 1
-        else:
-            for son in self.sons:
-                number += son.number_words()
-            if self.final is True: # On a word.
-                number += 1
+        if self.final is True: # On a word. Hell yeah.
+            number += 1
+        if self.key is None:
+            return number
+        # Search if tree has child and brother.
+        if self.child is not None:
+            number += self.child.number_words()
+        if self.brother is not None:
+            number += self.brother.number_words()
         return number
 
     def all_words(self):
         """Return all the words of the tree."""
         words = []
-        def get_all(tree, word=''):
+        def get_all(tree, buffer=''):
             """Get all words of the tree."""
-            tree.sons.sort(key=lambda x: x.key)
-            if tree.sons == []: # On a leaf.
-                if tree.final is True and tree.key is not None: # Word is final.
-                    words.append(word + str(tree.key))
-            else: # Everywhere else in the tree.
-                if tree.final is True and tree.key is not None:
-                    words.append(word + str(tree.key))
-                for son in tree.sons:
-                    if tree.key is None: # On the root.
-                        get_all(son, word)
-                    else: # Everywhere else in the tree.
-                        get_all(son, word + str(tree.key))
+            if tree.key is None:
+                return None
+
+            if tree.final is True:
+                words.append(buffer + tree.key)
+            if tree.child is not None:
+                get_all(tree.child, buffer + tree.key)
+            if tree.brother is not None:
+                get_all(tree.brother, buffer)
         get_all(self)
         return words
 
-    def height(self):
+    def height(self, number=0):
         """Return the height of the tree."""
-        height = 0
-        for son in self.sons:
-            temp = son.height()
-            if temp > height:
-                height = temp
-        if self.key != None:
-            return height + 1
-        return height
+        if self.key is None:
+            return 0
 
-    def average_height(self):
+        # On the node, height is 1. Search for chid's height, and compare
+        # to brother height. If brother higher than me, return brother's height.
+        result = 1
+        if self.child is not None:
+            result += self.child.height()
+
+        if self.brother is not None:
+            temp = self.brother.height(result)
+            if temp > result:
+                return temp
+        return result
+
+    def average_height(self, number=0):
         """Return the average height of the tree."""
-        average = 0.0
-        for son in self.sons:
-            temp = son.average_height()
-            if average == 0.0: # Initialization.
-                average = temp
-            else:
-                average = round((average + temp) / 2, 2)
-        return round(average + 1)
+        if self.key is None:
+            return 0.0
+
+        average = 1.0
+        if self.child is not None:
+            average += self.child.height()
+
+        if self.brother is not None:
+            temp = self.brother.height(average)
+            average = round((average + temp) / 2, 2)
+        return average
 
     def prefix(self, word):
         """Get all words which start by the word."""
         word = word.lower()
-        answer = []
-        def get_all(tree, word, pref=''):
+        words = []
+        if self.key is None:
+            return []
+
+        def get_all(tree, word, buffer=''):
             """Get all words which start by the word."""
-            if len(word) == 0:
-                if tree.final is True: # On a word which is prefixed by word.
-                    answer.append(pref + tree.key)
-                for son in tree.sons: # Recursively search every other words.
-                    get_all(son, word, pref + tree.key)
-            elif tree.key is None: # On the root.
-                for son in tree.sons: # Recursively search every words.
-                    get_all(son, word, pref)
-            else: # Everywhere else in the tree.
-                if tree.key == word[0]:
-                    if tree.final is True and len(word) == 1:
-                        answer.append(pref + word) # Add the word cause it's final.
-                    for son in tree.sons: # Recursively search every other words.
-                        get_all(son, word[1:], pref + tree.key)
+            if len(word) == 0: # All words remaining are prefixed by word.
+                if tree.final is True:
+                    words.append(buffer + tree.key)
+                if tree.child is not None:
+                    get_all(tree.child, word, buffer + tree.key)
+                if tree.brother is not None:
+                    get_all(tree.brother, word, buffer)
+            elif tree.key == word[0]: # Prefix isn't over. Explore.
+                buffer += tree.key
+                if tree.final is True and len(word) == 1:
+                    words.append(buffer) # Prefix is a word by itself.
+                if tree.child is not None:
+                    get_all(tree.child, word[1:], buffer)
+            else: # Explore on brother.
+                if tree.brother is not None:
+                    get_all(tree.brother, word, buffer)
         get_all(self, word)
-        return answer
+        return words
 
     def suppress(self, word):
         """Delete a word from the tree."""
         word = word.lower()
-        if self.key is None: # On the root.
-            for son in self.sons:
-                suppr = son.suppress(word)
-                if suppr is True:
-                    self.sons.remove(son) # Suppression to keep compacity.
-        else: # Everywhere else.
-            if len(word) == 0: # Son of the word to suppress.
-                return False
-            if self.key == word[0]: # In the prefix.
-                for son in self.sons:
-                    suppr = son.suppress(word[1:])
-                    if suppr is True:
-                        self.sons.remove(son) # Suppression to keep compacity.
-                if self.sons == []:
-                    return True # Can be removed.
-                else: # Word have to be deleted, but other words depends on it.
-                    self.final = False
-                    return False
+        if len(word) == 0: # Impossible, so return False.
+            return None
+
+        if self.key == word[0]: # Correct node.
+            if len(word) == 1: # On a leaf.
+                if self.child is None: # Empty tree.
+                    if self.final is True: # If tree is a final word.
+                        self.final = False
+                        if self.brother is not None: # Return brother to suppress itself.
+                            return self.brother
+                        else: # Brother is None, return True to suppress itself.
+                            return True
+                    return None
+                else:
+                    self.final = False # Suppress but keep structure.
+                    return None
+            else: # Anywhere in the tree.
+                if self.child is not None:
+                    suppr = self.child.suppress(word[1:])
+                    if suppr is not None:
+                        self.child = None
+                        if self.final is False:
+                            if self.brother is not None:# Return brother to suppress itself.
+                                return self.brother
+                            else: # Brother is None, return True to suppress itself.
+                                return True
+                    return None
+        else: # Incorrect node, explore brothers.
+            if self.brother is not None:
+                suppr = self.brother.suppress(word)
+                if suppr is not None:
+                    self.brother = suppr
+                    if self.final is False and self.child is None:
+                        return self.brother # Suppress itself.
 
     def merge(self, tree):
         """Add all words from the tree into itself."""
@@ -169,59 +225,53 @@ class BriandaisTree(object):
         for word in words:
             self.add_word(word)
 
-    def spaces(self, number):
+    def __str__(self, buffer=''):
         """Add a string representation."""
-        rstring = " " * number + str(self.key) + " " + str(self.final) + "\n"
-        for i in self.sons:
-            rstring += i.spaces(number + 2)
-        return rstring
+        string = ''
+        string += buffer + "Clé : " + self.key + '\n'
+        if self.child is not None:
+            string += self.child.__str__(buffer + ' ')
+        if self.brother is not None:
+            string += self.brother.__str__(buffer)
+        return string
     def __repr__(self):
-        return self.spaces(0)
+        return self.__str__()
 
 def merge(first, second):
     """Merge two trees into one."""
     # The complex way...
 
-    if first.key != second.key: # Can't append, but in case...
-        raise Exception("Not a normal situation...")
+    if first is None:
+        return second
+    if second is None:
+        return first
 
-    tree = BriandaisTree('') # Instantiate new tree.
-    tree.key = first.key # Keep the key.
-    tree.final = True if first.final is True or second.final is True else False
-    i = 0
-    j = 0
-    # Sort the sons.
-    first.sons.sort(key=lambda x: x.key)
-    second.sons.sort(key=lambda x: x.key)
+    tree = BriandaisTree()
 
-    # If one tree is empty, keep everything else.
-    if len(first.sons) == 0:
-        for son in second.sons:
-            tree.sons.append(son)
-        return tree
-    if len(second.sons) == 0:
-        for son in first.sons:
-            tree.sons.append(son)
-        return tree
-
-    # Merge the trees.
-    while i < len(first.sons) and j < len(second.sons):
-        if first.sons[i].key < second.sons[j].key:
-            tree.sons.append(first.sons[i])
-            i += 1
-        elif first.sons[i].key > second.sons[j].key:
-            tree.sons.append(second.sons[j])
-            j += 1
-        else:
-            tree.sons.append(merge(first.sons[i], second.sons[j]))
-            i += 1
-            j += 1
+    if first.key == second.key:
+        tree.key = first.key
+        tree.child = merge(first.child, second.child)
+        tree.brother = merge(first.brother, second.brother)
+        if first.final is True or second.final is True:
+            tree.final = True
+    elif first.key > second.key:
+        tree.key = second.key
+        tree.child = second.child
+        tree.brother = merge(first, second.brother)
+        if second.final is True:
+            tree.final = True
+    else:
+        tree.key = first.key
+        tree.child = first.child
+        tree.brother = merge(first.brother, second)
+        if first.final is True:
+            tree.final = True
     return tree
 
 # Functions to comply the specifications...
 def BriandaisTreeVide():
     """Retourne un arbre de la briandais vide."""
-    return BriandaisTree('')
+    return BriandaisTree()
 def NouveauBriandaisTree(word):
     """Retourne un arbre de la briandais initialisé avec le mot word."""
     return BriandaisTree(word)
@@ -234,11 +284,17 @@ def ComptageMot(tree):
 def ComptageNil(tree):
     """Compte le nombre de pointeurs nuls de l'arbre tree."""
     if tree.is_empty:
-        return 1
+        return 2
     else:
         number = 0
-        for son in tree.sons:
-            number += ComptageNil(son)
+        if tree.child is None:
+            number += 1
+        else:
+            number += ComptageNil(tree.child)
+        if tree.brother is None:
+            number += 1
+        else:
+            number += ComptageNil(tree.brother)
         return number
 def Hauteur(tree):
     """Retourne la hauteur de l'arbre tree."""
