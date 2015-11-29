@@ -273,7 +273,8 @@ class TernarySearchTree(object):
             if len(word) == 1:
                 self.final = True
             else:
-                self.current = TernarySearchTree(word[1:])
+                self.current = TernarySearchTree()
+                self.current.add_word_eq(word[1:])
 
         # Tree already full.
         elif word[0] == self.key:
@@ -281,19 +282,22 @@ class TernarySearchTree(object):
                 self.final = True
             # Existent or non-existent son ? Yes => Add, No => Create.
             elif self.current is None:
-                self.current = TernarySearchTree(word[1:])
+                self.current = TernarySearchTree()
+                self.current.add_word_eq(word[1:])
             else:
                 self.current.add_word_eq(word[1:])
         elif word[0] < self.key:
             # Existent or non-existent son ? Yes => Add, No => Create.
             if self.left is None:
-                self.left = TernarySearchTree(word)
+                self.left = TernarySearchTree()
+                self.left.add_word_eq(word)
             else:
                 self.left.add_word_eq(word)
         else: # If first letter > key
             # Existent or non-existent son ? Yes => Add, No => Create.
             if self.right is None:
-                self.right = TernarySearchTree(word)
+                self.right = TernarySearchTree()
+                self.right.add_word_eq(word)
             else:
                 self.right.add_word_eq(word)
 
