@@ -86,6 +86,8 @@ class BriandaisTree(object):
             if self.child is not None: # Word not over, continue to search.
                 return self.child.contains(word[1:])
             return False # No child. Too bad.
+        elif self.key > word[0]:
+            return False
         elif self.brother is not None: # Continue to search on branch.
             return self.brother.contains(word)
         else:

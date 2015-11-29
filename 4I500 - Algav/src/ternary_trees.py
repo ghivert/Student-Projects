@@ -283,19 +283,19 @@ class TernarySearchTree(object):
             elif self.current is None:
                 self.current = TernarySearchTree(word[1:])
             else:
-                self.current.add_word(word[1:])
+                self.current.add_word_eq(word[1:])
         elif word[0] < self.key:
             # Existent or non-existent son ? Yes => Add, No => Create.
             if self.left is None:
                 self.left = TernarySearchTree(word)
             else:
-                self.left.add_word(word)
+                self.left.add_word_eq(word)
         else: # If first letter > key
             # Existent or non-existent son ? Yes => Add, No => Create.
             if self.right is None:
                 self.right = TernarySearchTree(word)
             else:
-                self.right.add_word(word)
+                self.right.add_word_eq(word)
 
         # Balancing tree.
         def height_no_center(tree):
@@ -331,9 +331,9 @@ class TernarySearchTree(object):
 tree = TernarySearchTree()
 for word in EXAMPLE.split(' '):
     tree.add_word(word)
+tree = TernarySearchTree()
 print('glou !')
 print(tree)
-tree = TernarySearchTree()
 for word in EXAMPLE.split(' '):
     tree.add_word_eq(word)
 print("ouais !")
