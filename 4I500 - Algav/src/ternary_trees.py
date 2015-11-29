@@ -1,8 +1,9 @@
 """Module de gestion des tries hybrides. TernarySearchTree est la classe
-associée, et des fonctions de gestion existe afin de manipuler l'arbre de manière
+associee, et des fonctions de gestion existe afin de manipuler l'arbre de maniere
 non POO."""
 
 import string
+import os
 
 EXEMPLE = "A quel genial professeur de dactylographie sommes-nous redevables de \
 la superbe phrase ci-dessous, un modele du genre, que toute dactylo connait par \
@@ -262,6 +263,42 @@ class TernarySearchTree(object):
     def __repr__(self):
         return self.spaces(0)
 
+    def draw(self, filename):
+        """ Draw the tree into the file filename using graphviz """
+        def to_dot(self, filename):
+            nodes = ["0 [label=\"root\" style=\"invis\"]"]
+            edges = []
+            id_gen = [1]
+
+            def aux (tree, father, style) :
+                if tree.key is None:
+                    return
+
+                id = id_gen[0]
+                id_gen[0] += 1
+                color = "red" if tree.final else "blue"
+                nodes.append(str(id) + " [label=\"" + tree.key + "\" color=\"" + color + "\"]")
+                edges.append(str(father) + " -> " + str(id) + " [style=\"" + style + "\"]")
+
+                if tree.middle is not None:
+                    if tree.left is not None:
+                        aux(tree.left, id, "dashed")
+                    aux(tree.middle, id, "solid")
+                    if tree.right is not None:
+                        aux(tree.right, id, "dashed")
+
+            aux(self, 0, "invis")
+
+            fh = open(filename, 'w')
+            fh.write("digraph {\n");
+            fh.write("\n".join(nodes))
+            fh.write("\n".join(edges))
+            fh.write("\n}\n")
+            fh.close
+        
+        to_dot(self, "__tmp__.dot")
+        os.system("dot -Tps tmp.dot -o " + filename)
+        
     def add_word_eq(self, word):
         """Add a word to the tree."""
         word = word.lower()
@@ -371,7 +408,7 @@ def ProfondeurMoyenne(tree):
     """Retourne la hauteur moyenne de l'arbre tree."""
     return tree.average_height()
 def Prefixe(tree, word):
-    """Retourne tous les mots de l'arbre tree commençant par le préfixe word."""
+    """Retourne tous les mots de l'arbre tree commencant par le prefixe word."""
     return tree.prefix(word)
 def Suppression(tree, word):
     """Supprime le mot word de l'arbre tree s'il existe."""
