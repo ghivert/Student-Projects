@@ -1,8 +1,9 @@
 """Module de gestion des arbres de la briandais. BriandaisTree est la classe
-associée, et des fonctions de gestion existe afin de manipuler l'arbre de manière
+associee, et des fonctions de gestion existe afin de manipuler l'arbre de maniere
 non POO."""
 
 import string
+import os
 
 EXEMPLE = "A quel genial professeur de dactylographie sommes-nous redevables de \
 la superbe phrase ci-dessous, un modele du genre, que toute dactylo connait par \
@@ -228,7 +229,7 @@ class BriandaisTree(object):
     def __str__(self, buffer=''):
         """Add a string representation."""
         string = ''
-        string += buffer + "Clé : " + self.key + '\n'
+        string += buffer + "Cle : " + self.key + '\n'
         if self.child is not None:
             string += self.child.__str__(buffer + ' ')
         if self.brother is not None:
@@ -236,6 +237,43 @@ class BriandaisTree(object):
         return string
     def __repr__(self):
         return self.__str__()
+
+    def print_br(self, filename):
+        def to_dot(self, filename):
+            nodes = ["0 [label=\"root\" color=\"black\"]"]
+            edges = []
+            id_gen = [1]
+            
+            def aux (tree, father) :
+                if tree.key is None:
+                    return None
+                    
+                id = id_gen[0]
+                id_gen[0] += 1
+                    
+                edges.append(str(father) + " -> " + str(id))
+                    
+                color = "red" if tree.final else "blue"
+                nodes.append(str(id) + " [label=\"" + tree.key + "\" color=\"" + color + "\"]")
+                        
+                if tree.brother is not None:
+                    aux(tree.brother, father)
+                            
+                if tree.child is not None:
+                    aux(tree.child, id)
+                                
+            aux(self, 0)
+                
+            fh = open(filename, 'w')
+            fh.write("digraph {\n");
+            fh.write("\n".join(nodes))
+            fh.write("\n".join(edges))
+            fh.write("\n}\n")
+            fh.close
+        
+        to_dot(self, "tmp.dot")
+        os.system("dot -Tps tmp.dot -o " + filename)
+        
 
 def merge(first, second):
     """Merge two trees into one."""
@@ -273,7 +311,7 @@ def BriandaisTreeVide():
     """Retourne un arbre de la briandais vide."""
     return BriandaisTree()
 def NouveauBriandaisTree(word):
-    """Retourne un arbre de la briandais initialisé avec le mot word."""
+    """Retourne un arbre de la briandais initialise avec le mot word."""
     return BriandaisTree(word)
 def Recherche(tree, word):
     """Recherche le mot word dans l'arbre tree et indique s'il est dans l'arbre."""
@@ -303,7 +341,7 @@ def ProfondeurMoyenne(tree):
     """Retourne la hauteur moyenne de l'arbre tree."""
     return tree.average_height()
 def Prefixe(tree, word):
-    """Retourne tous les mots de l'arbre tree commençant par le préfixe word."""
+    """Retourne tous les mots de l'arbre tree commencant par le prefixe word."""
     return tree.prefix(word)
 def Suppression(tree, word):
     """Supprime le mot word de l'arbre tree s'il existe."""
@@ -312,3 +350,4 @@ def Suppression(tree, word):
 def Fusion(arbre1, arbre2):
     "Fusionne les deux arbres arbre1 et arbre2 et retourne un nouvel arbre."
     return merge(arbre1, arbre2)
+
