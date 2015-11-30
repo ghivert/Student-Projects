@@ -1,4 +1,5 @@
 from briandais import BriandaisTree
+from ternary_trees import TernarySearchTree
 import string
 
 EXEMPLE = "A quel genial professeur de dactylographie sommes-nous redevables de \
@@ -23,7 +24,15 @@ EXAMPLE = only_alpha()
 briandais = BriandaisTree();
 for word in EXEMPLE.split():
     briandais.add_word(word)
-
-print briandais
     
-briandais.print_br("output.pdf")
+briandais.draw("briandais.pdf")
+
+tree = TernarySearchTree()
+for word in EXAMPLE.split(' '):
+    tree.add_word(word)
+tree.draw("ternary_regular.pdf")
+
+tree = TernarySearchTree()
+for word in EXAMPLE.split(' '):
+    tree = tree.add_word_eq(word)
+tree.draw("ternary_eq.pdf")
