@@ -274,7 +274,7 @@ class BriandaisTree(object):
             fh.close
         
         to_dot(self, "tmp.dot")
-        os.system("dot -Tps tmp.dot -o " + filename)
+        os.system("dot -Tpdf tmp.dot -o " + filename)
         
 
 def merge(first, second):

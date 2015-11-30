@@ -297,7 +297,7 @@ class TernarySearchTree(object):
             fh.close
         
         to_dot(self, "tmp.dot")
-        os.system("dot -Tps tmp.dot -o " + filename)
+        os.system("dot -Tpdf tmp.dot -o " + filename)
         
     def add_word_eq(self, word):
         """Add a word to the tree."""
