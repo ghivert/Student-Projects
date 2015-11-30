@@ -358,14 +358,12 @@ class TernarySearchTree(object):
         h_right = height_no_center(self.right)
         if h_left - h_right > 1:
             # Rotation droite
-            print "rotation droite"
             temp = self.left
             self.left = temp.right
             temp.right = self
             return temp
         elif h_left - h_right < -1:
             # Rotation gauche
-            print "rotation left"
             temp = self.right
             self.right = temp.left
             temp.left = self
