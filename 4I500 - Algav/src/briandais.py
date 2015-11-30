@@ -240,7 +240,7 @@ class BriandaisTree(object):
     def __repr__(self):
         return self.__str__()
 
-    def print_br(self, filename):
+    def draw(self, filename):
         def to_dot(self, filename):
             nodes = ["0 [label=\"root\" color=\"black\"]"]
             edges = []
@@ -274,7 +274,7 @@ class BriandaisTree(object):
             fh.close
         
         to_dot(self, "tmp.dot")
-        os.system("dot -Tps tmp.dot -o " + filename)
+        os.system("dot -Tpdf tmp.dot -o " + filename)
         
 
 def merge(first, second):
