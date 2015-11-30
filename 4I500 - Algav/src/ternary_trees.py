@@ -26,7 +26,7 @@ class TernarySearchTree(object):
     """Represent a dictionnary, which as a ternary Search tree."""
     def __init__(self, word=None):
         self.left = None
-        self.current = None
+        self.middle = None
         self.right = None
         self.final = False
         self.key = None
@@ -45,17 +45,17 @@ class TernarySearchTree(object):
             if len(word) == 1:
                 self.final = True
             else:
-                self.current = TernarySearchTree(word[1:])
+                self.middle = TernarySearchTree(word[1:])
 
         # Tree already full.
         elif word[0] == self.key:
             if len(word) == 1: # One letter word.
                 self.final = True
             # Existent or non-existent son ? Yes => Add, No => Create.
-            elif self.current is None:
-                self.current = TernarySearchTree(word[1:])
+            elif self.middle is None:
+                self.middle = TernarySearchTree(word[1:])
             else:
-                self.current.add_word(word[1:])
+                self.middle.add_word(word[1:])
         elif word[0] < self.key:
             # Existent or non-existent son ? Yes => Add, No => Create.
             if self.left is None:
@@ -71,7 +71,7 @@ class TernarySearchTree(object):
 
     def is_empty(self):
         """Test if the tree is empty."""
-        if self.left is None and self.current is None and self.right is None and self.key is None:
+        if self.left is None and self.middle is None and self.right is None and self.key is None:
             return True
         return False
 
@@ -95,8 +95,8 @@ class TernarySearchTree(object):
                     return True
                 else:
                     return False
-            if self.current is not None:  # Search for the rest of word.
-                return self.current.contains(word[1:])
+            if self.middle is not None:  # Search for the rest of word.
+                return self.middle.contains(word[1:])
             return False
         else:
             return False
@@ -106,8 +106,8 @@ class TernarySearchTree(object):
         number = 0
         if self.left is not None:
             number += self.left.number_words()
-        if self.current is not None:
-            number += self.current.number_words()
+        if self.middle is not None:
+            number += self.middle.number_words()
         if self.right is not None:
             number += self.right.number_words()
         if self.final is True:
@@ -126,8 +126,8 @@ class TernarySearchTree(object):
 
             if tree.final is True: # On node.
                 words.append(buffer + tree.key)
-            if tree.current is not None: # current branch, keep the buffer and the letter.
-                get_all(tree.current, buffer + tree.key)
+            if tree.middle is not None: # middle branch, keep the buffer and the letter.
+                get_all(tree.middle, buffer + tree.key)
 
             if tree.right is not None: # Right branch, higher than word[0]
                 get_all(tree.right, buffer)
@@ -143,8 +143,8 @@ class TernarySearchTree(object):
             temp = self.left.height()
             if temp > number:
                 number = temp
-        if self.current is not None:
-            temp = self.current.height()
+        if self.middle is not None:
+            temp = self.middle.height()
             if temp > number:
                 number = temp
         if self.right is not None:
@@ -158,8 +158,8 @@ class TernarySearchTree(object):
         average = 0.0
         if self.left is not None:
             average = self.left.average_height()
-        if self.current is not None:
-            temp = self.current.average_height()
+        if self.middle is not None:
+            temp = self.middle.average_height()
             if average == 0.0:
                 average = temp
             else:
@@ -195,15 +195,15 @@ class TernarySearchTree(object):
                 if tree.final is True: # Prefix is a valid word.
                     print(buffer)
                     answer.append(buffer)
-                if tree.current is not None: # Get all the remaining words.
-                    words = tree.current.all_words()
+                if tree.middle is not None: # Get all the remaining words.
+                    words = tree.middle.all_words()
                     # Map the list to get the correct words.
                     return list(map(create_map(buffer), words)) + answer
                 return answer
 
             if tree.key == word[0]: # The prefix is correct, continue to find next.
-                if tree.current is not None:
-                    return get_all(tree.current, word[1:], buffer + tree.key)
+                if tree.middle is not None:
+                    return get_all(tree.middle, word[1:], buffer + tree.key)
             if tree.key < word[0]: # The letter is incorrect, search for prefix.
                 if tree.left is not None:
                     return get_all(tree.left, word, buffer)
@@ -219,9 +219,9 @@ class TernarySearchTree(object):
         if len(word) == 0: # Impossible, so return False.
             return None
 
-        if self.key == word[0]: # current.
+        if self.key == word[0]: # middle.
             if len(word) == 1: # On a leaf.
-                if self.right is None and self.left is None and self.current is None:
+                if self.right is None and self.left is None and self.middle is None:
                     if self.final is True: # If the word exists.
                         self.final = False
                         return True # Suppress
@@ -230,11 +230,11 @@ class TernarySearchTree(object):
                     self.final = False # Suppress but keep structure.
                     return None
 
-            if self.current is not None:
-                suppr = self.current.suppress(word[1:]) # Recursively suppress.
+            if self.middle is not None:
+                suppr = self.middle.suppress(word[1:]) # Recursively suppress.
                 if suppr is True:
-                    self.current = None # Suppress son.
-                if self.right is None and self.left is None and self.current is None:
+                    self.middle = None # Suppress son.
+                if self.right is None and self.left is None and self.middle is None:
                     # If letter is terminal, we could suppress another word.
                     if self.final is False:
                         return True
@@ -255,8 +255,8 @@ class TernarySearchTree(object):
         rstring = " " * number + str(self.final) + " " + str(self.key) + "\n"
         if self.left is not None:
             rstring += self.left.spaces(number + 2)
-        if self.current is not None:
-            rstring += self.current.spaces(number + 2)
+        if self.middle is not None:
+            rstring += self.middle.spaces(number + 2)
         if self.right is not None:
             rstring += self.right.spaces(number + 2)
         return rstring
@@ -297,32 +297,32 @@ class TernarySearchTree(object):
             fh.close
         
         to_dot(self, "__tmp__.dot")
-        os.system("dot -Tps tmp.dot -o " + filename)
+        os.system("dot -Tps __tmp__.dot -o " + filename)
         
     def add_word_eq(self, word):
         """Add a word to the tree."""
         word = word.lower()
         if len(word) == 0:
-            return None
+            return self
 
         if self.key is None: # If we are on the root uninitialized.
             self.key = word[0] # Initialize.
             if len(word) == 1:
                 self.final = True
             else:
-                self.current = TernarySearchTree()
-                self.current.add_word_eq(word[1:])
+                self.middle = TernarySearchTree()
+                self.middle.add_word_eq(word[1:])
 
         # Tree already full.
         elif word[0] == self.key:
             if len(word) == 1: # One letter word.
                 self.final = True
             # Existent or non-existent son ? Yes => Add, No => Create.
-            elif self.current is None:
-                self.current = TernarySearchTree()
-                self.current.add_word_eq(word[1:])
+            elif self.middle is None:
+                self.middle = TernarySearchTree()
+                self.middle.add_word_eq(word[1:])
             else:
-                self.current.add_word_eq(word[1:])
+                self.middle.add_word_eq(word[1:])
         elif word[0] < self.key:
             # Existent or non-existent son ? Yes => Add, No => Create.
             if self.left is None:
@@ -339,17 +339,17 @@ class TernarySearchTree(object):
                 self.right.add_word_eq(word)
 
         # Balancing tree.
-        def height_no_center(tree):
+        def height_no_center(self):
             """Get the height of the tree without center."""
-            if self.key is None:
+            if self is None or self.key is None:
                 return 0
             number = 0
             if self.left != None:
-                temp = self.left.height()
+                temp = height_no_center(self.left)
                 if temp > number:
                     number = temp
             if self.right is not None:
-                temp = self.right.height()
+                temp = height_no_center(self.right)
                 if temp > number:
                     number = temp
             return number + 1
@@ -358,27 +358,35 @@ class TernarySearchTree(object):
         h_right = height_no_center(self.right)
         if h_left - h_right > 1:
             # Rotation droite
+            print "rotation droite"
             temp = self.left
             self.left = temp.right
             temp.right = self
-            self = temp
+            return temp
         elif h_left - h_right < -1:
             # Rotation gauche
+            print "rotation left"
             temp = self.right
             self.right = temp.left
             temp.left = self
-            self = temp
+            return temp
+        return self
 
 tree = TernarySearchTree()
 for word in EXAMPLE.split(' '):
     tree.add_word(word)
-tree = TernarySearchTree()
 print('glou !')
-print(tree)
+tree.draw("output.pdf")
+#print(tree)
+tree = TernarySearchTree()
 for word in EXAMPLE.split(' '):
-    tree.add_word_eq(word)
+    print "AJOUT DE : " + word
+    tree = tree.add_word_eq(word)
+    print "MOT AJOUTE : " + word
+    print tree
 print("ouais !")
 print(tree)
+tree.draw("output2.pdf")
 
 # Functions to comply specifications...
 def Recherche(tree, word):
@@ -398,7 +406,7 @@ def ComptageNil(tree):
     if tree.is_empty:
         return 4
     number += ComptageNil(tree.left)
-    number += ComptageNil(tree.current)
+    number += ComptageNil(tree.middle)
     number += ComptageNil(tree.right)
     return number
 def Hauteur(tree):
