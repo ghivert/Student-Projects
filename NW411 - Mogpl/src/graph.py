@@ -101,19 +101,19 @@ class Node(object):
 
     def spaces(self, number):
         if self.up:
-            up = "Haut !"#self.up.spaces(number + 2)
+            up = "Haut !"
         else:
             up = 'None'
         if self.left:
-            left = "Gauche !"#self.left.spaces(number + 2)
+            left = "Gauche !"
         else:
             left = 'None'
         if self.down:
-            down = "Bas !"#self.down.spaces(number + 2)
+            down = "Bas !"
         else:
             down = 'None'
         if self.right:
-            right = "Droite !"#self.right.spaces(number + 2)
+            right = "Droite !"
         else:
             right = 'None'
         rstring = number * ' ' + 'Noeud x: ' + str(self.x) + ' et y: ' + str(self.y) + '\n'

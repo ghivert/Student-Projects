@@ -61,8 +61,3 @@ class MazeReader(object):
             mazes.append(maze)
         file.close()
         return mazes
-
-mr = MazeReader()
-for i in mr.read_maze('../instances/small.maze'):
-    i.print_maze()
-    print('')
