@@ -5,13 +5,13 @@ class Maze(object):
 
     def starting_point(self, point):
         """Define the starting point of robot."""
-        self.start_x = point[0]
-        self.start_y = point[1]
+        self.start_x = point[1]
+        self.start_y = point[0]
 
     def ending_point(self, point):
         """Define the ending point of robot."""
-        self.end_x = point[0]
-        self.end_y = point[1]
+        self.end_x = point[1]
+        self.end_y = point[0]
 
     def orientation(self, orient):
         """Define the orientation of robot."""
