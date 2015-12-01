@@ -68,6 +68,7 @@ class BriandaisTree(object):
         """Test if the tree is empty."""
         if self.key is None and self.child is None and self.brother is None:
             return True
+        return False
 
     def contains(self, word):
         """Test if tree contains the word."""
@@ -215,11 +216,14 @@ class BriandaisTree(object):
                     return None
         else: # Incorrect node, explore brothers.
             if self.brother is not None:
-                suppr = self.brother.suppress(word)
-                if suppr is not None:
-                    self.brother = suppr
-                    if self.final is False and self.child is None:
-                        return self.brother # Suppress itself.
+                if self.brother is not True:
+                    suppr = self.brother.suppress(word)
+                    if suppr is not None:
+                        self.brother = suppr
+                        if self.final is False and self.child is None:
+                            return self.brother # Suppress itself.
+                else:
+                    self.brother = None
 
     def merge(self, tree):
         """Add all words from the tree into itself."""
@@ -245,37 +249,37 @@ class BriandaisTree(object):
             nodes = ["0 [label=\"root\" color=\"black\"]"]
             edges = []
             id_gen = [1]
-            
+
             def aux (tree, father) :
                 if tree.key is None:
                     return None
-                    
+
                 id = id_gen[0]
                 id_gen[0] += 1
-                    
+
                 edges.append(str(father) + " -> " + str(id))
-                    
+
                 color = "red" if tree.final else "blue"
                 nodes.append(str(id) + " [label=\"" + tree.key + "\" color=\"" + color + "\"]")
-                        
+
                 if tree.brother is not None:
                     aux(tree.brother, father)
-                            
+
                 if tree.child is not None:
                     aux(tree.child, id)
-                                
+
             aux(self, 0)
-                
+
             fh = open(filename, 'w')
             fh.write("digraph {\n");
             fh.write("\n".join(nodes))
             fh.write("\n".join(edges))
             fh.write("\n}\n")
             fh.close
-        
+
         to_dot(self, "tmp.dot")
         os.system("dot -Tpdf tmp.dot -o " + filename)
-        
+
 
 def merge(first, second):
     """Merge two trees into one."""
@@ -323,7 +327,7 @@ def ComptageMot(tree):
     return tree.number_words()
 def ComptageNil(tree):
     """Compte le nombre de pointeurs nuls de l'arbre tree."""
-    if tree.is_empty:
+    if tree.is_empty():
         return 2
     else:
         number = 0
@@ -352,4 +356,3 @@ def Suppression(tree, word):
 def Fusion(arbre1, arbre2):
     "Fusionne les deux arbres arbre1 et arbre2 et retourne un nouvel arbre."
     return merge(arbre1, arbre2)
-

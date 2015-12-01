@@ -10,21 +10,34 @@ class Robot(object):
         self.start = Node(maze, maze.start_x, maze.start_y)
 
     def dijkstra(self):
+        """Evolve through the graph. Dynamically expand nodes, without walking on previous visited nodes. Find shortest path."""
         class HeapObject(object):
             """docstring for HeapObject"""
             def __init__(self, node, move, cost, orient):
                 self.node = node
                 self.move = move
                 self.cost = cost
-                self.orient = str(orient)
+                self.orient = orient.strip()
+            # Sort for the heap.
             def __lt__(self, other):
                 return self.cost < other.cost
+        # For keeping already view nodes.
+        passed = []
+        for i in range(len(self.maze.maze) + 1):
+            li = []
+            for j in range(len(self.maze.maze[0]) + 1):
+                li.append({'nord': False, 'ouest': False, 'sud': False, 'est':         False})
+            passed.append(li)
+        # To find the cheapest node.
         heap = []
         heappush(heap, HeapObject(self.start, [], 0, self.orient))
         current = heappop(heap)
+        # Search while not on ending point.
         while (current.node.x != self.maze.end_x) or (current.node.y != self.maze.end_y):
-            current.node.lookup_around()
-            if current.node.up is not None:
+            # Keep trace of node.
+            passed[current.node.x][current.node.y][current.orient] = True
+            current.node.lookup_around() # Expand.
+            if current.node.up is not None and passed[current.node.x][current.node.y - 1]['nord'] is False:
                 if current.orient.startswith('nord'):
                     if len(current.move) >= 1:
                         if current.move[-1] == 'a1':
@@ -39,7 +52,7 @@ class Robot(object):
                     heappush(heap, HeapObject(current.node.up, current.move + ['G'] + ['a1'], current.cost + 2, 'nord'))
                 elif current.orient.startswith('ouest'):
                     heappush(heap, HeapObject(current.node.up, current.move + ['D'] + ['a1'], current.cost + 2, 'nord'))
-            if current.node.down is not None:
+            if current.node.down is not None and passed[current.node.x][current.node.y + 1]['sud'] is False:
                 if current.orient.startswith('sud'):
                     if len(current.move) >= 1:
                         if current.move[-1] == 'a1':
@@ -54,7 +67,7 @@ class Robot(object):
                     heappush(heap, HeapObject(current.node.down, current.move + ['D'] + ['a1'], current.cost + 2, 'sud'))
                 elif current.orient.startswith('ouest'):
                     heappush(heap, HeapObject(current.node.down, current.move + ['G'] + ['a1'], current.cost + 2, 'sud'))
-            if current.node.right is not None:
+            if current.node.right is not None and passed[current.node.x + 1][current.node.y]['est'] is False:
                 if current.orient.startswith('est'):
                     if len(current.move) >= 1:
                         if current.move[-1] == 'a1':
@@ -69,7 +82,7 @@ class Robot(object):
                     heappush(heap, HeapObject(current.node.right, current.move + ['D'] + ['a1'], current.cost + 2, 'est'))
                 elif current.orient.startswith('sud'):
                     heappush(heap, HeapObject(current.node.right, current.move + ['G'] + ['a1'], current.cost + 2, 'est'))
-            if current.node.left is not None:
+            if current.node.left is not None and passed[current.node.x - 1][current.node.y]['ouest'] is False:
                 if current.orient.startswith('ouest'):
                     if len(current.move) >= 1:
                         if current.move[-1] == 'a1':
@@ -84,12 +97,25 @@ class Robot(object):
                     heappush(heap, HeapObject(current.node.left, current.move + ['G'] + ['a1'], current.cost + 2, 'ouest'))
                 elif current.orient.startswith('sud'):
                     heappush(heap, HeapObject(current.node.left, current.move + ['D'] + ['a1'], current.cost + 2, 'ouest'))
-            current = heappop(heap)
-        print(current.cost)
-        print(current.move)
+            # If heapq is empty, return -1 (no way found).
+            try:
+                current = heappop(heap)
+            except Exception:
+                return -1
+        rstring = str(current.cost) + ' '
+        for move in current.move:
+            rstring += str(move) + ' '
+        return rstring
 
-mr = MazeReader()
-for i in mr.read_maze('../instances/exemple.maze'):
-    i.print_maze()
-    robot = Robot(i)
-    robot.dijkstra()
+def resolve_maze(file, output=None):
+    """Resolve the given maze file."""
+    mr = MazeReader()
+    for i in mr.read_maze(file):
+        i.print_maze()
+        robot = Robot(i)
+        if output is not None:
+            fh = open(output, 'a')
+            fh.write(robot.dijkstra())
+            fh.close()
+        else:
+            print(robot.dijkstra())

@@ -295,10 +295,10 @@ class TernarySearchTree(object):
             fh.write("\n".join(edges))
             fh.write("\n}\n")
             fh.close
-        
+
         to_dot(self, "tmp.dot")
         os.system("dot -Tpdf tmp.dot -o " + filename)
-        
+
     def add_word_eq(self, word):
         """Add a word to the tree."""
         word = word.lower()
@@ -384,9 +384,9 @@ def ComptageNil(tree):
     """Compte le nombre de pointeurs nuls de l'arbre tree."""
     if tree is None:
         return 1
-    number = 0
-    if tree.is_empty:
+    if tree.is_empty():
         return 4
+    number = 0
     number += ComptageNil(tree.left)
     number += ComptageNil(tree.middle)
     number += ComptageNil(tree.right)

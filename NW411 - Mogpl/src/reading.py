@@ -34,7 +34,10 @@ class Maze(object):
             for j in i:
                 string += '----'
             string += '-\n'
-        print(string)
+        print(string[:-1])
+        print("Beginning: (" + str(self.start_x) + ", " + str(self.start_y) + ")")
+        print("End: (" + str(self.end_x) + ", " + str(self.end_y) + ")")
+        print("Orientation: " + self.orient)
 
 class MazeReader(object):
     """Read a maze file and return an initialized Maze."""

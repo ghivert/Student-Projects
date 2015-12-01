@@ -1,8 +1,9 @@
 from reading import Maze, MazeReader
 
 class Node(object):
-    """docstring for Node"""
+    """Nodes for evolving in graph."""
     def __init__(self, maze, x, y, parent=None):
+        """Initialize node. Keep maze, parent, and position."""
         self.maze = maze
         self.x = x
         self.y = y
@@ -13,11 +14,15 @@ class Node(object):
         self.right = None
 
     def lookup_around(self):
+        """Look if it's possible to go up, left, right and down. It it is,
+        expand properly everything, and put it into self.up, self.left,
+        self.right and self.down."""
         x = self.x
         y = self.y
         maze = self.maze.maze
 
         def around(x, y, maze):
+            """Look around to see if cases are occupied."""
             fields = [False, False, False, False]
 
             # Particular cases.
@@ -94,26 +99,28 @@ class Node(object):
             return fields
 
         def obstacle(cases):
+            """Look if there's an obstacle near the point."""
             for case in cases:
                 if case is None or case is False:
-                    return False
-            return True
+                    return True
+            return False
 
         fields = around(x, y, maze)
         if fields[0] is True and fields[1] is True:
-            if obstacle(around(x, y - 1, maze)) == True:
+            if obstacle(around(x, y - 1, maze)) is False:
                 self.up = Node(self.maze, x, y - 1, self)
         if fields[0] is True and fields[2] is True:
-            if obstacle(around(x - 1, y, maze)) == True:
+            if obstacle(around(x - 1, y, maze)) is False:
                 self.left = Node(self.maze, x - 1, y, self)
         if fields[2] is True and fields[3] is True:
-            if obstacle(around(x, y + 1, maze)) == True:
+            if obstacle(around(x, y + 1, maze)) is False:
                 self.down = Node(self.maze, x, y + 1, self)
         if fields[3] is True and fields[1] is True:
-            if obstacle(around(x + 1, y, maze)) == True:
+            if obstacle(around(x + 1, y, maze)) is False:
                 self.right = Node(self.maze, x + 1, y, self)
 
     def spaces(self, number):
+        """Affichage du noeud."""
         if self.up:
             up = "Haut !"
         else:
