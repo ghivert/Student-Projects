@@ -87,6 +87,10 @@ def shakespeare_test():
     print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
+    print("Comptage de la hauteur moyenne better: " + str(briandais.av_leaf_height()))
+    print("\tDuree: " + str(time.time() - startt))
+
+    startt = time.time()
     print("Suppression de tous les mots.")
     for word in briandais.all_words():
         briandais.suppress(word)
@@ -124,7 +128,7 @@ def shakespeare_test():
     print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print("Comptage de la hauteur moyenne : " + str(tree.average_height()))
+    print("Comptage de la hauteur moyenne : " + str(tree.av_leaf_height()))
     print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
