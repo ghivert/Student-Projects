@@ -142,6 +142,7 @@ class BriandaisTree(object):
                 return temp
         return result
 
+    # return the average height of all nodes
     def average_height(self, number=0):
         """Return the average height of the tree."""
         if self.key is None:
@@ -156,6 +157,21 @@ class BriandaisTree(object):
             average = round((average + temp) / 2, 2)
         return average
 
+    # return the average height of all leaf
+    def av_leaf_height(self):
+        total = [0]
+        moyenne = [0]
+        def aux(self, height):
+            if self.child is None:
+                total[0] += 1
+                moyenne[0] += height
+            if self.child is not None:
+                aux(self.child, height + 1)
+            if self.brother is not None:
+                aux(self.brother, height)
+        aux(self, 1)
+        return round((moyenne[0] / total[0]), 2)
+                
     def prefix(self, word):
         """Get all words which start by the word."""
         word = word.lower()
@@ -345,7 +361,7 @@ def Hauteur(tree):
     return tree.height()
 def ProfondeurMoyenne(tree):
     """Retourne la hauteur moyenne de l'arbre tree."""
-    return tree.average_height()
+    return tree.av_leaf_height()
 def Prefixe(tree, word):
     """Retourne tous les mots de l'arbre tree commencant par le prefixe word."""
     return tree.prefix(word)

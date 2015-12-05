@@ -172,6 +172,23 @@ class TernarySearchTree(object):
                 average = round((average + temp) / 2, 2)
         return round(average + 1)
 
+    # return the average height of all leaf
+    def av_leaf_height(self):
+        total = [0]
+        moyenne = [0]
+        def aux(self, height):
+            if self.middle is None:
+                total[0] += 1
+                moyenne[0] += height
+            if self.middle is not None:
+                aux(self.middle, height + 1)
+            if self.left is not None:
+                aux(self.left, height + 1)
+            if self.right is not None:
+                aux(self.right, height + 1)
+        aux(self, 1)
+        return round((moyenne[0] / total[0]), 2)
+
     def prefix(self, word):
         """Get all words which prefix is word."""
         word = word.lower()
@@ -396,7 +413,7 @@ def Hauteur(tree):
     return tree.height()
 def ProfondeurMoyenne(tree):
     """Retourne la hauteur moyenne de l'arbre tree."""
-    return tree.average_height()
+    return tree.av_leaf_height()
 def Prefixe(tree, word):
     """Retourne tous les mots de l'arbre tree commencant par le prefixe word."""
     return tree.prefix(word)
