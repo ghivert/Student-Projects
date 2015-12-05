@@ -23,29 +23,43 @@ def only_alpha(text):
     return rstring
 
 def short_test():
+    print "-------- Testing create, add, and draw functions. --------\n"
+    
     EXAMPLE = only_alpha(EXEMPLE)
 
     # test of briandais tree
+    print "Creating a new Briandais Tree"
     briandais = BriandaisTree();
+    print "Adding all words of the example"
     for word in EXEMPLE.split():
         briandais.add_word(word)
+    print "Drawing the briandais Tree (look at briandais.pdf)"
     briandais.draw("briandais.pdf")
 
     # test of regular Ternary tree
+    print "Creating a new 'Trie Hybride'"
     tree = TernarySearchTree()
+    print "Adding all words of the example"
     for word in EXAMPLE.split(' '):
         tree.add_word(word)
+    print "Drawing the 'Trie hybride' (look at ternary_regular.pdf)"
     tree.draw("ternary_regular.pdf")
 
     # test of self-balancing Ternary tree
+    print "Creating a new 'Trie Hybride', but this time it will be balance"
     tree = TernarySearchTree()
+    print "Adding all words of the exemple (still keeping the balance)"
     for word in EXAMPLE.split(' '):
         tree = tree.add_word_eq(word)
+    print "Drawing the tree. (look at ternary_eq.pdf)\n\n"
     tree.draw("ternary_eq.pdf")
 
 
 def shakespeare_test():
+    print "-------- Demarrage des tests avances --------\n"
+    
     # creating the Shakespeare briandais tree
+    print("*********** BRIANDAIS TREE ************")
     startt = time.time()
     briandais = BriandaisTree();
     for filename in glob.iglob('Shakespeare/*'):
@@ -53,42 +67,40 @@ def shakespeare_test():
         for word in fh:
             briandais.add_word(only_alpha(word))
         fh.close()
-    print("BRIANDAIS")
-    print("On ajoute tout SH !")
-    print(time.time() - startt)
+    print("Oeuvre de Shakespeare ajoutee a l'arbre. ")
+    print("\tDuree: " + str(time.time() - startt))
+    
+    startt = time.time()
+    print("Comptage du nombre de mot : " + str(briandais.number_words()))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(briandais.number_words())
-    print("On compte les mots !")
-    print(time.time() - startt)
+    print("Comptage du nombre de NIL : " + str(ComptageNil(briandais)))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(ComptageNil(briandais))
-    print("On compte les nil !")
-    print(time.time() - startt)
+    print("Comptage de la hauteur : " + str(briandais.height()))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(briandais.height())
-    print("On compte la hauteur !")
-    print(time.time() - startt)
+    print("Comptage de la hauteur moyenne: " + str(briandais.average_height()))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(briandais.average_height())
-    print("On compte la hauteur moyenne !")
-    print(time.time() - startt)
-
-    startt = time.time()
+    print("Suppression de tous les mots.")
     for word in briandais.all_words():
         briandais.suppress(word)
-    print("On compte les suppressions !")
-    print(time.time() - startt)
+    print("\tDuree: " + str(time.time() - startt))
 
-    # and printing it
+    # Drawing such a big tree takes some time, so if you really want to see it,
+    # uncommment the next line.
     #briandais.draw("briandais_shake.pdf")
 
     print('')
 
+    
     # creating the Shakespeare ternary tree
+    print("*********** TRIE HYBRIDE ************")
     startt = time.time()
     tree = TernarySearchTree()
     for filename in glob.iglob('Shakespeare/*'):
@@ -96,37 +108,33 @@ def shakespeare_test():
         for word in fh:
             tree.add_word(only_alpha(word))
         fh.close()
-    print("TST")
-    print("On ajoute tout SH !")
-    print(time.time() - startt)
+    print("Oeuvre de Shakespeare ajoutee a l'arbre. ")
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(tree.number_words())
-    print("On compte les mots !")
-    print(time.time() - startt)
+    print("Comptage du nombre de mot : " + str(tree.number_words()))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(Nil(tree))
-    print("On compte les nil !")
-    print(time.time() - startt)
+    print("Comptage du nombre de NIL : " + str(Nil(tree)))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(tree.height())
-    print("On compte la hauteur !")
-    print(time.time() - startt)
+    print("Comptage de la hauteur : " + str(tree.height()))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
-    print(tree.average_height())
-    print("On compte la hauteur moyenne !")
-    print(time.time() - startt)
+    print("Comptage de la hauteur moyenne : " + str(tree.average_height()))
+    print("\tDuree: " + str(time.time() - startt))
 
     startt = time.time()
+    print("Suppression de tous les mots.")
     for word in tree.all_words():
         tree.suppress(word)
-    print("On compte les suppressions !")
-    print(time.time() - startt)
+    print("\tDuree: " + str(time.time() - startt))
 
-    # and printing it
+    # Drawing such a big tree takes some time, so if you really want to see it,
+    # uncommment the next line.
     #tree.draw("ternary_shake.pdf")
 
 short_test()
