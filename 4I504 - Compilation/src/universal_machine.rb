@@ -48,7 +48,7 @@ class UniversalMachine
 
     #File.open("vm.log", "w") do |stream|
       loop do
-        stream.print "PC = " + @pc.to_s + " "
+        #stream.print "PC = " + @pc.to_s + " "
         next_instr
         case @opc
         when OPCODES::CMV
@@ -110,7 +110,7 @@ class UniversalMachine
         when OPCODES::IN
           #stream.puts "IN      -- reg(a) = " + @registers[@a].to_s + " reg(b) = " + @registers[@b].to_s + " reg(c) = " + @registers[@c].to_s
           input = getc
-          if getc = nil
+          if getc == nil
             @registers[@c] = 0xFFFFFFFF
           else
             @registers[@c] = input.ord
