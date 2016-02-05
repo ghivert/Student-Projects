@@ -15,22 +15,24 @@ ident      [a-z]+
 
 %%
 
-"CONST"   { return CONST; }
-"VAR"     { return VAR;   }
-"SET"     { return SET;   }
-"IF"      { return IF;    }
-"WHILE"   { return WHILE; }
+"CONST"   { return TOK_CONST; }
+"VAR"     { return TOK_VAR;   }
+"SET"     { return TOK_SET;   }
+"IF"      { return TOK_IF;    }
+"WHILE"   { return TOK_WHILE; }
 
-"bool"    { return BOOL_TYPE; }
-"int"     { return INT_TYPE;  }
+"bool"    { return TYPE_BOOL; }
+"int"     { return TYPE_INT;  }
 
-"not"     { return NOT; }
-"and"     { return AND; }
-"or"      { return OR;  }
-"add"     { return ADD; }
-"sub"     { return SUB; }
-"mul"     { return MUL; }
-"div"     { return DIV; }
+"not"     { return TOK_NOT; }
+"and"     { return TOK_AND; }
+"or"      { return TOK_OR;  }
+"add"     { return TOK_ADD; }
+"sub"     { return TOK_SUB; }
+"mul"     { return TOK_MUL; }
+"div"     { return TOK_DIV; }
+"eq"      { return TOK_EQ;  }
+"lt"      { return TOK_LT;  }
 
 "true"    { return TRUE;  }
 "false"   { return FALSE; }
