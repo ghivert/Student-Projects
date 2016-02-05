@@ -1,3 +1,6 @@
+#ifndef __AST__
+#define __AST__
+
 #include <stdbool.h>
 
 typedef struct _program           Program;
@@ -126,3 +129,5 @@ struct _commands {
 struct _program {
   Commands *content;
 };
+
+#endif

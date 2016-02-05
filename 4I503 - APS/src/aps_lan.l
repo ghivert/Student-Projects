@@ -5,6 +5,7 @@
 
 // Include header by bison.
 #include "ast.h"
+#include "ast_access.h"
 #include "aps_lan.tab.h"
 
 %}

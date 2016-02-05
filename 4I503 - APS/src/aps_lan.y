@@ -1,9 +1,20 @@
 %{
+  // Debug purposes.
   #define  YYDEBUG 1
+  // Includes.
   #include <stdio.h>
   #include <stdlib.h>
 
   #include "ast.h"
+  #include "ast_access.h"
+
+  // To avoid warnings.
+  int yylex();
+  void yyerror(const char *string);
+
+  // To read from CLI.
+  extern FILE *yyin;
+  FILE *yyout;
 %}
 
 %union {
@@ -80,7 +91,7 @@ _Program:
 ;
 
 _Commands:
-    _Command                 { $$ = $1; }
+    _Command                 { $$ = new_commands($1, NULL); }
   | _Command ';' _Commands   { $$ = new_commands($1, $3); }
 ;
 
@@ -135,13 +146,26 @@ _Expression:
 
 %%
 
-int yyerror(char *string) {
+// Handling errors, just in case...
+void yyerror(const char *string) {
   printf("Error... %s\n", string);
-  return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[]) {
+  // Debug purposes.
   yydebug = 0;
-  yyparse();
+
+  // Changing input to read from argument.
+  for (int i = 1; i < argc; i++) {
+    // Parsing.
+    yyin = fopen(argv[i], "r");
+    yyparse();
+    fclose(yyin);
+
+    // Writing to output.
+    yyout = fopen(replace_str(argv[i], ".mps", ".out"), "w");
+
+    fclose(yyout);
+  }
   return EXIT_SUCCESS;
 }
