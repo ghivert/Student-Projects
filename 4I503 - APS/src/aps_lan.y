@@ -42,6 +42,10 @@
 // For AST constructing.
 %token DECL
 %token STAT
+%token BOOL
+%token FUN
+%token UNARY
+%token BINARY
 
 %start Program
 
