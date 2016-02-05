@@ -10,7 +10,7 @@
 
 number     [0-9]
 integer    {number}+
-whites     [\s]+
+whites     [ \n\t]+
 ident      [a-z]+
 
 %%
@@ -35,10 +35,8 @@ ident      [a-z]+
 "true"    { return TRUE;  }
 "false"   { return FALSE; }
 
-.         { return yytext[0]; }
-
 {whites}  { /* Just ignore it. */ }
-{integer} {
-  yylval.value = atoi(yytext);
-  return INT;
-}
+{ident}   { yylval.name  = strdup(yytext); return IDENT; }
+{integer} { yylval.value = atoi(yytext); return INT;     }
+
+.         { return yytext[0]; }

@@ -1,4 +1,5 @@
 %{
+  #define  YYDEBUG 1
   #include <stdio.h>
   #include <stdlib.h>
 %}
@@ -27,6 +28,8 @@
 %token TOK_SUB
 %token TOK_MUL
 %token TOK_DIV
+%token TOK_EQ
+%token TOK_LT
 
 // Booleans.
 %token TRUE
@@ -35,6 +38,10 @@
 // Constants.
 %token <name>  IDENT
 %token <value> INT
+
+// For AST constructing.
+%token DECL
+%token STAT
 
 %start Program
 
@@ -71,29 +78,40 @@ Stat:
 ;
 
 UnaryOperation:
-    '(' TOK_NOT Expression ')' { printf(" TOK_NOT "); }
+    TOK_NOT Expression { printf(" TOK_NOT "); }
 ;
 
 BinaryOperation:
-    '(' TOK_AND   Expression   Expression ')' { printf(" TOK_AND "); }
-  | '(' TOK_OR    Expression   Expression ')' { printf(" TOK_OR "); }
-  | '(' TOK_ADD   Expression   Expression ')' { printf(" TOK_ADD "); }
-  | '(' TOK_SUB   Expression   Expression ')' { printf(" TOK_SUB "); }
-  | '(' TOK_MUL   Expression   Expression ')' { printf(" TOK_MUL "); }
-  | '(' TOK_DIV   Expression   Expression ')' { printf(" TOK_DIV "); }
+    TOK_AND   Expression   Expression { printf(" TOK_AND "); }
+  | TOK_OR    Expression   Expression { printf(" TOK_OR ");  }
+  | TOK_ADD   Expression   Expression { printf(" TOK_ADD "); }
+  | TOK_SUB   Expression   Expression { printf(" TOK_SUB "); }
+  | TOK_MUL   Expression   Expression { printf(" TOK_MUL "); }
+  | TOK_DIV   Expression   Expression { printf(" TOK_DIV "); }
+  | TOK_EQ    Expression   Expression { printf(" TOK_EQ ");  }
+  | TOK_LT    Expression   Expression { printf(" TOK_LT ");  }
 ;
 
-Expression:
-    TRUE { printf(" TRUE "); }
-  | FALSE { printf(" FALSE "); }
-  | INT { printf(" INT %d ", $1); }
-  | IDENT { printf(" IDENT %s ", $1); }
-  | UnaryOperation
+Function:
+    UnaryOperation
   | BinaryOperation
+
+
+Expression:
+    TRUE  { printf(" TRUE "); }
+  | FALSE { printf(" FALSE "); }
+  | INT   { printf(" INT %d ", $1); }
+  | IDENT { printf(" IDENT %s ", $1); }
+  | '(' Function ')'
 ;
 
 %%
 
+int yyerror(char *string) {
+  printf("Error... %s\n", string);
+}
+
 int main(int argc, char *argv[]) {
+  yydebug = 0;
   yyparse();
 }
