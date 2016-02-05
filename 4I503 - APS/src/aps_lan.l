@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 // Include header by bison.
+#include "ast.h"
 #include "aps_lan.tab.h"
 
 %}

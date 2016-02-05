@@ -3,12 +3,16 @@
 #include "ast.h"
 #include "aps_lan.tab.h"
 
+// Functions for easy manipulation of AST.
+
+// Creates a new Program.
 Program *new_prog(Commands *content) {
   Program *r_prog = malloc(sizeof *r_prog);
   r_prog->content = content;
   return r_prog;
 }
 
+// Creates a new Commands.
 Commands *new_commands(Command *content, Commands *next) {
   Commands *r_commands = malloc(sizeof *r_commands);
   r_commands->content = content;
@@ -16,6 +20,7 @@ Commands *new_commands(Command *content, Commands *next) {
   return r_commands;
 }
 
+// Creates a new Declaration.
 Command *new_declaration(Declaration *decl) {
   Command *r_command = malloc(sizeof *r_command);
   r_command->token = DECL;
@@ -23,6 +28,7 @@ Command *new_declaration(Declaration *decl) {
   return r_command;
 }
 
+// Creates a new Stat.
 Command *new_stat(Stat *stat) {
   Command *r_command = malloc(sizeof *r_command);
   r_command->token = STAT;
@@ -30,6 +36,7 @@ Command *new_stat(Stat *stat) {
   return r_command;
 }
 
+// Creates a new Const.
 Declaration *new_const(char *name, Expression *content) {
   Declaration *r_decl = malloc(sizeof *r_decl);
   r_decl->token = TOK_CONST;
@@ -38,6 +45,7 @@ Declaration *new_const(char *name, Expression *content) {
   return r_decl;
 }
 
+// Creates a new Var.
 Declaration *new_var(char *name, TypeExpression *content) {
   Declaration *r_decl = malloc(sizeof *r_decl);
   r_decl->token = TOK_VAR;
@@ -46,12 +54,14 @@ Declaration *new_var(char *name, TypeExpression *content) {
   return r_decl;
 }
 
+// Creates new TypeExpression.
 TypeExpression *new_type_expression(int type) {
   TypeExpression *r_texpr = malloc(sizeof *r_texpr);
   r_texpr->token = type;
   return r_texpr;
 }
 
+// Creates a new Set.
 Stat *new_set(char *ident, Expression *expr) {
   Stat *r_set = malloc(sizeof *r_set);
   r_set->token = TOK_SET;
@@ -60,6 +70,7 @@ Stat *new_set(char *ident, Expression *expr) {
   return r_set;
 }
 
+// Creates a new Conditionnal.
 Stat *new_cond(Expression *cond, Program *right, Program *wrong) {
   Stat *r_cond = malloc(sizeof *r_cond);
   r_cond->token = TOK_IF;
@@ -69,6 +80,7 @@ Stat *new_cond(Expression *cond, Program *right, Program *wrong) {
   return r_cond;
 }
 
+// Creates a new While.
 Stat *new_loop(Expression *cond, Program *body) {
   Stat *r_loop = malloc(sizeof *r_loop);
   r_loop->token = TOK_WHILE;
@@ -77,6 +89,7 @@ Stat *new_loop(Expression *cond, Program *body) {
   return r_loop;
 }
 
+// Creates a new UnaryOperation.
 UnaryOperation *new_un_op(Expression *expr) {
   UnaryOperation *r_un_op = malloc(sizeof *r_un_op);
   r_un_op->token = TOK_NOT;
@@ -84,6 +97,7 @@ UnaryOperation *new_un_op(Expression *expr) {
   return r_un_op;
 }
 
+// Creates a new BinaryOperation.
 BinaryOperation *new_bin_op(int type, Expression *first, Expression *second) {
   BinaryOperation *r_bin = malloc(sizeof *r_bin);
   r_bin->token = type;
@@ -92,6 +106,7 @@ BinaryOperation *new_bin_op(int type, Expression *first, Expression *second) {
   return r_bin;
 }
 
+// Creates a new Bool.
 Expression *new_bool(bool value) {
   Expression *r_bool = malloc(sizeof *r_bool);
   r_bool->token = BOOL;
@@ -99,6 +114,7 @@ Expression *new_bool(bool value) {
   return r_bool;
 }
 
+// Creates a new Int.
 Expression *new_int(int value) {
   Expression *r_int = malloc(sizeof *r_int);
   r_int->token = INT;
@@ -106,6 +122,7 @@ Expression *new_int(int value) {
   return r_int;
 }
 
+// Creates a new Ident.
 Expression *new_ident(char *name) {
   Expression *r_ident = malloc(sizeof *r_ident);
   r_ident->token = IDENT;
@@ -113,6 +130,7 @@ Expression *new_ident(char *name) {
   return r_ident;
 }
 
+// Creates a new Function.
 Expression *new_function(Function *fun) {
   Expression *r_fun = malloc(sizeof *r_fun);
   r_fun->token = FUN;
@@ -120,6 +138,7 @@ Expression *new_function(Function *fun) {
   return r_fun;
 }
 
+// Creates a new Unary Function.
 Function *new_un_fun(UnaryOperation *un_op) {
   Function *r_un_fun = malloc(sizeof *r_un_fun);
   r_un_fun->token = UNARY;
@@ -127,12 +146,15 @@ Function *new_un_fun(UnaryOperation *un_op) {
   return r_un_fun;
 }
 
+// Creates a new Binary Function.
 Function *new_bin_fun(BinaryOperation *bin_op) {
   Function *r_bin_fun = malloc(sizeof *r_bin_fun);
   r_bin_fun->token = BINARY;
   r_bin_fun->content.bin_op = bin_op;
   return r_bin_fun;
 }
+
+// Free functions for all types.
 
 void free_fun(Function *fun) {
   if (fun->token == UNARY)
