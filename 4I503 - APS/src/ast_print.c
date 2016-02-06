@@ -1,5 +1,7 @@
 #include "ast_print.h"
 
+// Printing functions for Prolog. Print a Prolog sequence.
+
 void print_program(FILE *yyout, Program *prog) {
   fprintf(yyout, "[");
   print_commands(yyout, get_prog_content(prog));

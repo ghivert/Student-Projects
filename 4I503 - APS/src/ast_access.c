@@ -1,5 +1,7 @@
 #include "ast_access.h"
 
+// Accessors for variables in structures.
+
 Commands *get_prog_content(Program *prog) {
   return prog->content;
 }
@@ -128,6 +130,7 @@ Expression *get_binary_operation_second(BinaryOperation *bin_op) {
   return bin_op->expr_second;
 }
 
+// Replace a substring.
 char *replace_str(char *str, char *orig, char *rep) {
   static char buffer[4096];
   char *p;
