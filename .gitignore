@@ -1,2 +1,9 @@
 *.o
 *.out
+.DS_Store
+bin/
+*~
+*.
+um
+um.exe
+*.log
