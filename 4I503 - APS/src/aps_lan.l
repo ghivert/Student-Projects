@@ -1,5 +1,5 @@
 %{
-
+  
 // Include header for atoi.
 #include <stdlib.h>
 
@@ -41,6 +41,6 @@ ident      [a-z]+
 
 {whites}  { /* Just ignore it. */ }
 {ident}   { yylval.name  = strdup(yytext); return IDENT; }
-{integer} { yylval.value = atoi(yytext); return INT;     }
+{integer} { yylval.value = atoi(yytext);   return INT;   }
 
 .         { return yytext[0]; }

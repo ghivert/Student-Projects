@@ -1,12 +1,11 @@
-SRC = ast.c ast_access.c
+SRC = ast.c ast_access.c ast_print.c
 OBJ = $(SRC:%.c=%.o)
-CFLAGS = -O2 -std=c11 -Wall -Wextra
+CFLAGS = -std=c11 -Wall -Wextra
 
-all: test
+all: mpp2prolog
 
-test: aps_lan.tab.o aps_lan.lex.o $(OBJ)
+mpp2prolog: aps_lan.tab.o aps_lan.lex.o $(OBJ)
 	gcc $(CFLAGS) -o $@ $^ -ll
-	-./test ../tests/unit_test.mps
 
 aps_lan.tab.o: aps_lan.tab.c
 	gcc $(CFLAGS) -c $<
@@ -25,4 +24,4 @@ aps_lan.tab.c: aps_lan.y
 	bison -d aps_lan.y
 
 clean:
-	$(RM) aps_lan.tab* aps_lan.lex* test $(OBJ)
+	$(RM) aps_lan.tab* aps_lan.lex* mpp2prolog $(OBJ) ../tests/*.out

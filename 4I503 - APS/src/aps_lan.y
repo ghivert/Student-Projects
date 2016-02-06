@@ -1,4 +1,5 @@
 %{
+
   // Debug purposes.
   #define  YYDEBUG 1
   // Includes.
@@ -7,6 +8,7 @@
 
   #include "ast.h"
   #include "ast_access.h"
+  #include "ast_print.h"
 
   // To avoid warnings.
   int yylex();
@@ -15,6 +17,9 @@
   // To read from CLI.
   extern FILE *yyin;
   FILE *yyout;
+
+  // To store the AST.
+  Program *program;
 %}
 
 %union {
@@ -82,9 +87,11 @@
 %type <expr>     _Expression
 %type <fun>      _Function
 
-%start _Program
+%start _Entry
 
 %%
+
+_Entry: _Program      { program = $1; }
 
 _Program:
   '[' _Commands ']'   { $$ = new_prog($2); }
@@ -163,9 +170,13 @@ int main(int argc, char *argv[]) {
     fclose(yyin);
 
     // Writing to output.
-    yyout = fopen(replace_str(argv[i], ".mps", ".out"), "w");
-
+    yyout = fopen(replace_str(argv[i], ".mpp", ".out"), "w");
+    fprintf(yyout, "prog(");
+    print_program(yyout, program);
+    fprintf(yyout, ")");
     fclose(yyout);
+
+    free_program(program);
   }
   return EXIT_SUCCESS;
 }

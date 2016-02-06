@@ -221,7 +221,8 @@ void free_command(Command *command) {
 
 void free_commands(Commands *commands) {
   free_command(commands->content);
-  free_commands(commands->next);
+  if (commands->next)
+    free_commands(commands->next);
   free(commands);
 }
 
