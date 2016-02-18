@@ -1,5 +1,4 @@
 %{
-
   // Debug purposes.
   #define  YYDEBUG 1
   // Includes.

@@ -7,3 +7,7 @@ bin/
 um
 um.exe
 *.log
+*.lex.c
+*.tab.c
+*.tab.h
+mpp2prolog
