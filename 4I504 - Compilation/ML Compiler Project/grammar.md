@@ -20,5 +20,6 @@ e ::= ()
     | let rec f = e in e
     
 bs ::= Nil -> e
-     | Cons (x, x) -> e
+     | | Nil -> e
+       | Cons (x, x) -> e
 ```
