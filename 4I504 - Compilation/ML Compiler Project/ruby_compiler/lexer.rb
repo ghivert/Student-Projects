@@ -1,4 +1,4 @@
-require 'RLTK'
+require 'RLTK/Lexer'
 
 # Create a Lexer for the mini ML language.
 class Lexer < RLTK::Lexer
@@ -13,7 +13,7 @@ class Lexer < RLTK::Lexer
 
   # Ident
   rule(/[a-z][A-Z]*/) { |id|  [:IDENT, id] }
-  rule(/[0-9]+/)      { |int| [:INT, int]   }
+  rule(/[0-9]+/)      { |int| [:INT, int.to_i]   }
 
   # Keywords
   rule(/true/)  { :TRUE   }
@@ -30,11 +30,12 @@ class Lexer < RLTK::Lexer
   rule(/Nil/)   { :NIL    }
   rule(/match/) { :MATCH  }
   rule(/with/)  { :WITH   }
+  rule(/\|/)    { :PIPE   }
 
   # Operators
   rule(/::/) { :CONS   }
   rule(/\+/) { :ADD    }
-  rule(/\*/) { :TIMES  }
+  rule(/\*/) { :MUL    }
   rule(/\-/) { :SUB    }
   rule(/<=/) { :LEQ    }
   rule(/>=/) { :GEQ    }

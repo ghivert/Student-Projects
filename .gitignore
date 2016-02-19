@@ -11,3 +11,5 @@ um.exe
 *.tab.c
 *.tab.h
 mpp2prolog
+
+*.dot
