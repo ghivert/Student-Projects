@@ -30,7 +30,7 @@ def naive(points)
         all_covered = true
         circle = Geometry.circumcircle(q, r, s)
         points.each do |t|
-          all_covered = false unless circle and circle.is_covered s
+          all_covered = false unless circle and circle.is_covered t
         end
         @circle = circle if all_covered
       end

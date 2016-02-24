@@ -3,13 +3,13 @@ require_relative 'AST'
 require_relative 'Lexer'
 
 class Parser < RLTK::Parser
-  right :FUN
+  left :ADD
   left :MUL
 
   production(:beginning, 'expression') { |expr| expr }
 
   production(:expression) do
-    clause('FUN IDENT ARROW expression') do |_, name, _, expr|
+    clause('FUN .IDENT ARROW .expression') do |name, expr|
       Function.new([name], expr)
     end
     clause('LET .IDENT EQUAL .expression IN .expression') do |id, res, body|
@@ -52,4 +52,4 @@ class Parser < RLTK::Parser
   finalize({:use => 'parser.tbl'})
 end
 
-Parser.parse(Lexer.lex_file('simple.mml'), {:parse_tree => true})
+puts Parser.parse(Lexer.lex_file('simple.mml'), {:parse_tree => true, :accept => :all})[2]
