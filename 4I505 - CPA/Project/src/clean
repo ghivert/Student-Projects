@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm -rf welzl naive
+rm -rf C/*.o

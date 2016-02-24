@@ -1,0 +1,4 @@
+#!/bin/bash
+
+gcc -g -std=c11 -o welzl C/circle.c C/reading.c C/geometry.c C/main.c C/welzl.c
+gcc -g -D_NAIVE -std=c11 -o naive C/circle.c C/reading.c C/geometry.c C/main.c C/welzl.c

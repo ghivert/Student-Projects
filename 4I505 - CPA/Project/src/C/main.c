@@ -44,15 +44,16 @@ int main(int argc, char const *argv[]) {
       sprintf(open_file, "%s/%s", argv[1], point_file->d_name);
 
     // Get all points and let's go compute !
-    struct pt *points = read_points(open_file);
+    struct pt points[512];
+    read_points(open_file, points);
 
 #ifdef _NAIVE
-    struct cl circle = naive(points);
+    struct cl circle = naive(points + 1);
 #else
-    struct cl circle = welzl(points);
+    struct cl circle = welzl(points + 1);
 #endif
 
-    free_pts(points); // Because I like memory.
+    // free_pts(points); // Because I like memory.
 
     // For the pretty printing.
     int size = strlen(point_file->d_name);
@@ -66,6 +67,7 @@ int main(int argc, char const *argv[]) {
                                                             circle.center.x,
                                                             circle.center.y,
                                                             circle.radius);
+    fflush(res);
   }
 
   // And I'm successful, because I'm worth it.

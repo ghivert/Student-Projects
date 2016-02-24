@@ -19,9 +19,9 @@ struct cl b_md(struct pt points[]) {
     return circle_nil();
   }
 
-  for (size_t i = 0; i < pts_size(points); i++) {
-    double dist = points[i].distance(points[i], circle.center) - circle.radius;
-    if (!(dist > -2 && dist < 2))
+  for (size_t i = 0; i < (size_t)pts_size(points); i++) {
+    double dist = (points[i].distance(points[i], circle.center)) - circle.radius;
+    if (dist <= -2 && dist >= 2)
       return circle_nil();
   }
 
@@ -29,44 +29,64 @@ struct cl b_md(struct pt points[]) {
 }
 
 struct cl _welzl(struct pt points[], struct pt border[]) {
-  srand(time(NULL));
+  printf("Null part...\n");
   struct cl circle = circle_nil();
-
   if (pts_size(points) == 0 || pts_size(border) == 3) {
+    printf("La...\n");
     circle = b_md(border);
   } else {
+    struct pt  pts[512];
+    struct pt bord[512];
+
+    printf("avant back.\n");
     size_t alea = nxt_i(pts_size(points));
     struct pt back = points[alea];
+    printf("après back.\n");
 
-    // Duplicate points, to avoid conflicts.
-    struct pt *temp = malloc(sizeof *temp * pts_size(points));
-    struct pt *bord = malloc(sizeof *bord * pts_size(border) + 2);
-    temp[0].x = pts_size(points) - 1;
-    bord[0].x = pts_size(border);
-    temp++; bord++;
+    printf("avant assign.\n");
+    pts[0] = new_point(pts_size(points) - 1, -1);
+    bord[0] = new_point(pts_size(border), -1);
+    printf("après assign.\n");
 
     // Remove element not needed.
-    for (size_t i = 0, cpt = 0; i < pts_size(points) - 1; i++)
-      if (i != alea)
-        temp[cpt++] = points[i];
-    for (size_t i = 0; i < pts_size(border) - 1; i++)
-      temp[i] = points[i];
-
-    circle = _welzl(temp, bord);
-    if (!circle.equal(circle, circle_nil()) && !circle.contains(circle, back)) {
-      bord[(int) pts_size(bord)] = back;
-      (bord - 1)->x++;
-      circle = _welzl(temp, bord);
+    for (size_t i = 0, cpt = 1; i < (size_t)pts_size(points); i++) {
+      if (i != alea) {
+        pts[cpt++] = points[i];
+      }
+    }
+    printf("Par la.\n");
+    for (size_t i = 0, cpt = 1; i < (size_t)pts_size(border); i++) {
+      bord[cpt++] = border[i];
     }
 
-    free_pts(temp);
-    free_pts(bord);
+    for (size_t i = 1; i < (size_t) pts[0].x + 1; i++)
+      printf("(%.2f %.2f) ", pts[i].x, pts[i].y);
+    printf("\n");
+    for (size_t i = 1; i < (size_t) bord[0].x + 1; i++)
+      printf("(%.2f %.2f) ", bord[i].x, bord[i].y);
+    printf("\n");
+
+    printf("avant welzl 1.\n");
+    circle = _welzl(&(pts[1]), &(bord[1]));
+    printf("après welzl 1.\n");
+
+    if (!circle.contains(circle, back)) {
+      printf("avant bord.\n");
+      bord[((int) bord[0].x) + 1] = back;
+      bord[0].x++;
+      printf("après bord.\n");
+
+      printf("avant welzl 2.\n");
+      circle = _welzl(&(pts[1]), &(bord[1]));
+      printf("après welzl 2.\n");
+    }
   }
   return circle;
 }
 
 struct cl welzl(struct pt points[]) {
+  srand(time(NULL));
   struct pt start[1];
   start[0].x = 0;
-  return _welzl(points, start + 1);
+  return _welzl(points, &(start[1]));
 }
