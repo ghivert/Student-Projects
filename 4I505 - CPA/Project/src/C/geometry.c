@@ -50,7 +50,7 @@ struct cl circum_circle(struct pt fst, struct pt sec, struct pt trd) {
   double y1 = fst.y, y2 = sec.y, y3 = trd.y;
 
   if ((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) == 0) {
-    return new_circle(new_point(0, 0), 0);
+    return circle_nil();
   }
 
   double x = (((x3*x3 - x2*x2 + y3*y3 - y2*y2) / (2 * (y3 - y2))) - ((x2*x2 - x1*x1 + y2*y2 - y1*y1) / (2 * (y2 - y1)))) / (((x2 - x1) / (y2 - y1)) - ((x3 - x2) / (y3 - y2)));

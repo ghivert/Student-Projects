@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define circle_nil()  (new_circle(new_point(-1, -1), -1))
+
 // Here's the structures. It's easier with them. :)
 struct pt {
   double x;

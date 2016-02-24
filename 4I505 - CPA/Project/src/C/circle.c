@@ -1,9 +1,8 @@
 #include "circle.h"
-#include "reading.h"
 
 struct cl naive(struct pt points[]) {
   size_t size = pts_size(points);
-  struct cl circle = new_circle(new_point(-1, -1), -1);
+  struct cl circle = circle_nil();
 
   for (size_t i = 0; i < size; i++)
     for (size_t j = 0; j < size; j++) {
@@ -21,7 +20,7 @@ struct cl naive(struct pt points[]) {
       if (all_covered)
         circle = temp;
     }
-  if (! circle.equal(circle, new_circle(new_point(-1, -1), -1)))
+  if (! circle.equal(circle, circle_nil()))
     return circle;
 
   for (size_t i = 0; i < size; i++)

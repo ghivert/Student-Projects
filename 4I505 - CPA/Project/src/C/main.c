@@ -6,8 +6,9 @@
 #include "reading.h"
 #include "geometry.h"
 #include "circle.h"
+#include "welzl.h"
 
-// Why C ? Because it's a pretty speed language... ;)
+// Why C ? Because it's a rather speed language... ;)
 int main(int argc, char const *argv[]) {
   struct dirent *point_file;
   char open_file[4096]; int i;
@@ -18,7 +19,14 @@ int main(int argc, char const *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  files = opendir(argv[1]); res = fopen("results.txt", "w");
+  files = opendir(argv[1]);
+
+#ifdef _NAIVE
+  res = fopen("results_naive.txt", "w");
+#else
+  res = fopen("results_welzl.txt", "w");
+#endif
+
   if (!files) {
     fprintf(stderr, "Where's the directory ? Lost in space and time... Do you need a doctor ?\n");
     exit(EXIT_FAILURE);
@@ -37,7 +45,13 @@ int main(int argc, char const *argv[]) {
 
     // Get all points and let's go compute !
     struct pt *points = read_points(open_file);
+
+#ifdef _NAIVE
     struct cl circle = naive(points);
+#else
+    struct cl circle = welzl(points);
+#endif
+
     free_pts(points); // Because I like memory.
 
     // For the pretty printing.
