@@ -40,9 +40,21 @@ module Geometry
     def is_covered(point)
       center.distance(point) <= radius
     end
+
+    # Equality, just in case.
+    def ==(circle)
+      circle.center == self.center and circle.radius == self.radius
+    end
+
+    def contains(point)
+      center.distance(point) < radius
+    end
   end
 
-  # Module methods.
+  ##################
+  # MODULE METHODS #
+  ##################
+
   # Return the distance between two points.
   def self.distance(point1, point2)
     point1.distance(point2)
@@ -55,20 +67,27 @@ module Geometry
 
   # Return the circumcircle of the three points.
   def self.circumcircle(point1, point2, point3)
-    x1 = point1.x; x2 = point2.x; x3 = point3.x
-    y1 = point1.y; y2 = point2.y; y3 = point3.y
+    x1 = point1.x.to_f
+    x2 = point2.x.to_f
+    x3 = point3.x.to_f
 
-    x = (((x3**2 - x2**2 + y3**2 - y2**2) / 
-          (2 * (y3 - y2))) - 
-         ((x2**2 - x1**2 + y2**2 - y1**2) / 
-          (2 * (y2 - y1)))) / 
-        (((x2 - x1) / (y2 - y1)) - 
-         ((x3 - x2) / (y3 - y2)))
-    
-    y = (-((x2 - x1) / (y2 - y1))) * x + 
-        ((x2**2 - x1**2 + y2**2 - y1**2) / (2 * (y2 - y1)))
+    y1 = point1.y.to_f
+    y2 = point2.y.to_f
+    y3 = point3.y.to_f
 
-    r = sqrt((x1 - x)**2 + (y1 - y)**2)
+    return nil if (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) == 0
+
+    x = (((x3**2 - x2**2 + y3**2 - y2**2) /
+    (2 * (y3 - y2))) -
+    ((x2**2 - x1**2 + y2**2 - y1**2) /
+    (2 * (y2 - y1)))) /
+    (((x2 - x1) / (y2 - y1)) -
+    ((x3 - x2) / (y3 - y2)))
+
+    y = (-((x2 - x1) / (y2 - y1))) * x +
+    ((x2**2 - x1**2 + y2**2 - y1**2) / (2 * (y2 - y1)))
+
+    r = Math.sqrt((x1 - x)**2 + (y1 - y)**2)
 
     Circle.new(Point.new(x, y), r)
   end

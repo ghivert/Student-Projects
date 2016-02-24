@@ -54,7 +54,7 @@ unsigned int * bread_file(char *filename) {
 void exec_vm(unsigned int *program) {
   char input;
   int index = 0, temp;
-  unsigned int size = 10000;
+  unsigned int size = 1 >> 26;
   unsigned int *new, *temp3;
   unsigned int **memory = calloc(sizeof *memory, size);
   
