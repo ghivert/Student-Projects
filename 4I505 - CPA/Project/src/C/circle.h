@@ -3,4 +3,4 @@
 #include "geometry.h"
 #include "reading.h"
 
-struct cl naive(struct pt points[]);
+struct cl naive(struct pt points[], size_t size);

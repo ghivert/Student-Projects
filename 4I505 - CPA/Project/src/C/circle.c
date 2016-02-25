@@ -1,9 +1,10 @@
 #include "circle.h"
 
-struct cl naive(struct pt points[]) {
-  size_t size = pts_size(points);
+// Resolves the naive algorithm.
+struct cl naive(struct pt points[], size_t size) {
   struct cl circle = circle_nil();
 
+  // For two points.
   for (size_t i = 0; i < size; i++)
     for (size_t j = 0; j < size; j++) {
       struct pt p1 = points[i], p2 = points[j];
@@ -18,11 +19,13 @@ struct cl naive(struct pt points[]) {
           break;
         }
       if (all_covered)
-        circle = temp;
+        if (temp.radius < circle.radius || circle.equal(circle, circle_nil()))
+          circle = temp;
     }
   if (! circle.equal(circle, circle_nil()))
     return circle;
 
+  // For three points.
   for (size_t i = 0; i < size; i++)
     for (size_t j = 0; j < size; j++) {
       struct pt p1 = points[i], p2 = points[j];
@@ -41,7 +44,8 @@ struct cl naive(struct pt points[]) {
             break;
           }
         if (all_covered)
-          circle = temp;
+          if (temp.radius < circle.radius || circle.equal(circle, circle_nil()))
+            circle = temp;
       }
     }
 

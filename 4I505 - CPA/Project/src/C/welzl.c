@@ -1,92 +1,69 @@
 #include "welzl.h"
 
+// Get a random int.
 int nxt_i(int max) {
   return (int)(rand() / (double) RAND_MAX * (max - 1));
 }
 
-struct cl b_md(struct pt points[]) {
+// Do the b_md calculus.
+struct cl b_md(struct pt points[], int size) {
+  if (size >= 4)
+    printf("Waouh\n");
+  if (size == 3) {
+    return circum_circle(points[0], points[1], points[2]);
+  } else if (size == 2) {
+    struct pt center = middle(points[0], points[1]);
+    double radius    = distance(points[0], center);
+    return new_circle(center, radius);
+  } else if (size == 1) {
+    return new_circle(points[0], 0);
+  }
+  return new_circle(new_point(0, 0), -2);
+}
+
+// Cause there's an algorithm.
+struct cl _welzl(struct pt points[], struct pt border[], size_t size_points, size_t size_border) {
+  // Duplicates points.
+  {
+    struct pt *pts = calloc(512, sizeof *pts);
+    struct pt *bor = calloc(512, sizeof *bor);
+
+    memcpy(pts, points, sizeof *pts * size_points);
+    memcpy(bor, border, sizeof *bor * size_border);
+
+    points = pts;
+    border = bor;
+  }
+
+  // Initiliazes the empty circle.
   struct cl circle;
 
-  if (pts_size(points) >= 3) {
-    circle = circum_circle(points[0], points[1], points[2]);
-    if (circle.equal(circle, circle_nil()))
-      return circle;
-  } else if (pts_size(points) == 2) {
-    struct pt center = middle(points[0], points[1]);
-    double radius = distance(points[0], points[1]) / 2;
-    return new_circle(center, radius);
+  // And begins.
+  if (size_points == 0 || size_border == 3) {
+    circle = b_md(border, size_border);
   } else {
-    return circle_nil();
-  }
-
-  for (size_t i = 0; i < (size_t)pts_size(points); i++) {
-    double dist = (points[i].distance(points[i], circle.center)) - circle.radius;
-    if (dist <= -2 && dist >= 2)
-      return circle_nil();
-  }
-
-  return circle;
-}
-
-struct cl _welzl(struct pt points[], struct pt border[]) {
-  struct pt  pts[512];
-  struct pt bord[512];
-  printf("Beginnning... %p %p\n", points, border);
-  fflush(stdout);
-  struct cl circle = circle_nil();
-  if (pts_size(points) == 0 || pts_size(border) == 3) {
-    printf("La...\n");
-    circle = b_md(border);
-  } else {
-    printf("avant back.\n");
-    size_t alea = nxt_i(pts_size(points));
+    // Pick a random point and remove it from points.
+    size_t alea    = nxt_i(size_points);
     struct pt back = points[alea];
-    printf("après back.\n");
+    points[alea]   = points[--size_points];
 
-    printf("avant assign.\n");
-    pts[0] = new_point(pts_size(points) - 1, -1);
-    bord[0] = new_point(pts_size(border), -1);
-    printf("après assign.\n");
+    // Recursive call.
+    circle = _welzl(points, border, size_points, size_border);
 
-    // Remove element not needed.
-    for (size_t i = 0, cpt = 1; i < (size_t)pts_size(points); i++) {
-      if (i != alea) {
-        pts[cpt++] = points[i];
-      }
-    }
-    printf("Par la.\n");
-    for (size_t i = 0, cpt = 1; i < (size_t)pts_size(border); i++) {
-      bord[cpt++] = border[i];
-    }
-
-    for (size_t i = 1; i < (size_t) pts[0].x + 1; i++)
-      printf("(%.2f %.2f) ", pts[i].x, pts[i].y);
-    printf("\n");
-    for (size_t i = 1; i < (size_t) bord[0].x + 1; i++)
-      printf("(%.2f %.2f) ", bord[i].x, bord[i].y);
-    printf("\n");
-
-    printf("avant welzl 1. %p %p\n", &pts[1], &bord[1]);
-    circle = _welzl(&(pts[1]), &(bord[1]));
-    printf("après welzl 1.\n");
-
-    if (!circle.contains(circle, back)) {
-      printf("avant bord.\n");
-      bord[((int) bord[0].x) + 1] = back;
-      bord[0].x++;
-      printf("après bord.\n");
-
-      printf("avant welzl 2.\n");
-      circle = _welzl(&(pts[1]), &(bord[1]));
-      printf("après welzl 2.\n");
+    // Test if another recursive call is needed.
+    if (circle.equal(circle, new_circle(new_point(0, 0), -2)) || !circle.contains(circle, back)) {
+      border[size_border++] = back;
+      circle = _welzl(points, border, size_points, size_border);
     }
   }
+
+  // And free the memory and return.
+  free(points);
+  free(border);
   return circle;
 }
 
-struct cl welzl(struct pt points[]) {
-  srand(time(NULL));
-  struct pt start[1];
-  start[0].x = 0;
-  return _welzl(points, &(start[1]));
+struct cl welzl(struct pt points[], size_t size) {
+  struct pt *start = malloc(sizeof *start * size);
+  return _welzl(points, start, size, 0);
 }
