@@ -12,7 +12,7 @@ module Geometry
 
     # Return distance between self and point.
     def distance(point)
-      Math.sqrt((point.x - self.x)**2 + (point.y - self.y)**2)
+      Math.sqrt(((point.x - self.x)**2) + ((point.y - self.y)**2))
     end
 
     # Return the middle point between self and point.
@@ -65,30 +65,43 @@ module Geometry
     point1.middle(point2)
   end
 
+  def self.circumcircle(fst, sec, trd)
+    x1, x2, x3 = fst.x, sec.x, trd.x
+    y1, y2, y3 = fst.y, sec.y, trd.y
+
+    div = x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)
+
+    return circleNil if div == 0
+
+    x = ((x1**2+y1**2)*(y2-y3) + (x2**2+y2**2)*(y3-y1) + (x3**2+y3**2)*(y1-y2) ) / div
+    y = ((x1**2+y1**2)*(x3-x2) + (x2**2+y2**2)*(x1-x3) + (x3**2+y3**2)*(x2-x1) ) / div
+
+    center = Point.new(x, y)
+    radius = fst.distance(center)
+
+    Circle.new(center, radius)
+  end
+
   # Return the circumcircle of the three points.
-  def self.circumcircle(point1, point2, point3)
-    x1 = point1.x.to_f
-    x2 = point2.x.to_f
-    x3 = point3.x.to_f
+  # def self.circumcircle(fst, sec, trd)
+  #   x1, x2, x3 = fst.x, sec.x, trd.x
+  #   y1, y2, y3 = fst.y, sec.y, trd.y
+  #
+  #   puts "#{x1}, #{x2}, #{x3}, #{y1}, #{y2}, #{y3}"
+  #
+  #   return circleNil if (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) == 0
+  #
+  #   x = (((x3*x3 - x2*x2 + y3*y3 - y2*y2) / (2 * (y3 - y2))) - ((x2*x2 - x1*x1 + y2*y2 - y1*y1) / (2 * (y2 - y1)))) / (((x2 - x1) / (y2 - y1)) - ((x3 - x2) / (y3 - y2)))
+  #
+  #   y = (-((x2 - x1) / (y2 - y1))) * x + ((x2*x2 - x1*x1 + y2*y2 - y1*y1) / (2 * (y2 - y1)))
+  #
+  #   r = Math.sqrt((x1 - x)*(x1 - x) + (y1 - y)*(y1 - y))
+  #
+  #   puts "#{x}, #{y}, #{r}"
+  #   Circle.new(Point.new(x, y), r)
+  # end
 
-    y1 = point1.y.to_f
-    y2 = point2.y.to_f
-    y3 = point3.y.to_f
-
-    return nil if (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) == 0
-
-    x = (((x3**2 - x2**2 + y3**2 - y2**2) /
-    (2 * (y3 - y2))) -
-    ((x2**2 - x1**2 + y2**2 - y1**2) /
-    (2 * (y2 - y1)))) /
-    (((x2 - x1) / (y2 - y1)) -
-    ((x3 - x2) / (y3 - y2)))
-
-    y = (-((x2 - x1) / (y2 - y1))) * x +
-    ((x2**2 - x1**2 + y2**2 - y1**2) / (2 * (y2 - y1)))
-
-    r = Math.sqrt((x1 - x)**2 + (y1 - y)**2)
-
-    Circle.new(Point.new(x, y), r)
+  def self.circleNil
+    Circle.new(Point.new(-1, -1), -1)
   end
 end

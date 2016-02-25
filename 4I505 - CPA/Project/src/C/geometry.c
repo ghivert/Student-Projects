@@ -49,15 +49,19 @@ struct cl circum_circle(struct pt fst, struct pt sec, struct pt trd) {
   double x1 = fst.x, x2 = sec.x, x3 = trd.x;
   double y1 = fst.y, y2 = sec.y, y3 = trd.y;
 
-  if ((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) == 0) {
+  double divs = x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2);
+
+  if (divs == 0) {
     return circle_nil();
   }
 
-  double x = (((x3*x3 - x2*x2 + y3*y3 - y2*y2) / (2 * (y3 - y2))) - ((x2*x2 - x1*x1 + y2*y2 - y1*y1) / (2 * (y2 - y1)))) / (((x2 - x1) / (y2 - y1)) - ((x3 - x2) / (y3 - y2)));
+  double x = ((x1*x1+y1*y1)*(y2-y3) + (x2*x2+y2*y2)*(y3-y1) + (x3*x3+y3*y3)*(y1-y2) ) / divs;
 
-  double y = (-((x2 - x1) / (y2 - y1))) * x + ((x2*x2 - x1*x1 + y2*y2 - y1*y1) / (2 * (y2 - y1)));
+  double y = ((x1*x1+y1*y1)*(x3-x2) + (x2*x2+y2*y2)*(x1-x3) + (x3*x3+y3*y3)*(x2-x1) ) / divs;
 
-  double r = sqrt(pow(x1 - x, 2) + pow(y2 - y1, 2));
+  struct pt center = new_point(x, y);
 
-  return new_circle(new_point(x, y), r);
+  double r = distance(fst, center);
+
+  return new_circle(center, r);
 }

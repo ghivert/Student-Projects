@@ -2,37 +2,38 @@ require_relative 'geometry'
 require_relative 'reading'
 
 def naive(points)
-  @circle = nil
+  @circle = Geometry.circleNil
   points.each do |q|
     points.each do |r|
       next if q == r
       all_covered = true
-      circle = Geometry::Circle.new(Geometry.middle(q, r),
-      Geometry.distance(q, r) / 2)
+      temp = Geometry::Circle.new(Geometry.middle(q, r), Geometry.distance(q, r) / 2)
       points.each do |s|
-        all_covered = false unless circle.is_covered s
+        unless temp.is_covered s
+          all_covered = false
+          break
+        end
       end
-      @circle = circle if all_covered
+      @circle = temp if all_covered
     end
   end
-  return @circle if @circle
+  return @circle unless @circle == Geometry.circleNil
 
-  $stdout << "Milieu...\r"
-
-  cpt = 0
   points.each do |q|
-    $stdout << cpt.to_s << "            \r"
-    cpt += 1
     points.each do |r|
       next if q == r
       points.each do |s|
         next if s == r or s == q
         all_covered = true
-        circle = Geometry.circumcircle(q, r, s)
+        temp = Geometry.circumcircle(q, r, s)
+        #puts "x: #{temp.center.x}, y: #{temp.center.y}, r: #{temp.radius}"
         points.each do |t|
-          all_covered = false unless circle and circle.is_covered t
+          unless temp.is_covered t
+            all_covered = false
+            break
+          end
         end
-        @circle = circle if all_covered
+        @circle = temp if all_covered
       end
     end
   end
@@ -42,16 +43,12 @@ end
 tests = Dir.entries(ARGV.first)
 tests.shift
 tests.shift
-File.open "results.txt", "w" do |fh|
+File.open "results_naive.txt", "w" do |fh|
   tests.each do |t|
-    $stdout << t.to_s << "\r"
+    $stdout << t.to_s << "\n"
     points = read_points t
     circle = naive points
-    if circle
-      fh << t << " " << circle.center.x << " " << circle.center.y << " " << circle.radius << "\n"
-    else
-      fh << t << " " << "nil\n"
-    end
+    fh << t << " -- x: " << circle.center.x << ", y: " << circle.center.y << ", radius: " << circle.radius << "\n"
     fh.flush
   end
 end

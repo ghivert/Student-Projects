@@ -29,15 +29,15 @@ struct cl b_md(struct pt points[]) {
 }
 
 struct cl _welzl(struct pt points[], struct pt border[]) {
-  printf("Null part...\n");
+  struct pt  pts[512];
+  struct pt bord[512];
+  printf("Beginnning... %p %p\n", points, border);
+  fflush(stdout);
   struct cl circle = circle_nil();
   if (pts_size(points) == 0 || pts_size(border) == 3) {
     printf("La...\n");
     circle = b_md(border);
   } else {
-    struct pt  pts[512];
-    struct pt bord[512];
-
     printf("avant back.\n");
     size_t alea = nxt_i(pts_size(points));
     struct pt back = points[alea];
@@ -66,7 +66,7 @@ struct cl _welzl(struct pt points[], struct pt border[]) {
       printf("(%.2f %.2f) ", bord[i].x, bord[i].y);
     printf("\n");
 
-    printf("avant welzl 1.\n");
+    printf("avant welzl 1. %p %p\n", &pts[1], &bord[1]);
     circle = _welzl(&(pts[1]), &(bord[1]));
     printf("après welzl 1.\n");
 
