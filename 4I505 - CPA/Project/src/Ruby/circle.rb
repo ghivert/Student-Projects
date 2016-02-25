@@ -1,3 +1,4 @@
+require 'benchmark'
 require_relative 'geometry'
 require_relative 'reading'
 
@@ -14,7 +15,12 @@ def naive(points)
           break
         end
       end
-      @circle = temp if all_covered
+
+      if all_covered
+        if temp.radius < @circle.radius or @circle == Geometry.circleNil
+          @circle = temp
+        end
+      end
     end
   end
   return @circle unless @circle == Geometry.circleNil
@@ -26,14 +32,18 @@ def naive(points)
         next if s == r or s == q
         all_covered = true
         temp = Geometry.circumcircle(q, r, s)
-        #puts "x: #{temp.center.x}, y: #{temp.center.y}, r: #{temp.radius}"
         points.each do |t|
           unless temp.is_covered t
             all_covered = false
             break
           end
         end
-        @circle = temp if all_covered
+
+        if all_covered
+          if temp.radius < @circle.radius or @circle == Geometry.circleNil
+            @circle = temp
+          end
+        end
       end
     end
   end
@@ -43,12 +53,14 @@ end
 tests = Dir.entries(ARGV.first)
 tests.shift
 tests.shift
-File.open "results_naive.txt", "w" do |fh|
+File.open "results_naive.csv", "w" do |fh|
+  fh << "x;y;radius;time\n"
   tests.each do |t|
     $stdout << t.to_s << "\n"
     points = read_points t
-    circle = naive points
-    fh << t << " -- x: " << circle.center.x << ", y: " << circle.center.y << ", radius: " << circle.radius << "\n"
+    circle = nil
+    bench = Benchmark.realtime { circle = naive points }
+    fh << circle.center.x << ";" << circle.center.y << ";" << circle.radius << ";" << bench << "\n"
     fh.flush
   end
 end

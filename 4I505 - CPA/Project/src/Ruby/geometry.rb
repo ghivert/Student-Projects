@@ -73,33 +73,14 @@ module Geometry
 
     return circleNil if div == 0
 
-    x = ((x1**2+y1**2)*(y2-y3) + (x2**2+y2**2)*(y3-y1) + (x3**2+y3**2)*(y1-y2) ) / div
-    y = ((x1**2+y1**2)*(x3-x2) + (x2**2+y2**2)*(x1-x3) + (x3**2+y3**2)*(x2-x1) ) / div
+    x = ((x1**2 + y1**2) * (y2 - y3) + (x2**2 + y2**2) * (y3 - y1) + (x3**2 + y3**2) * (y1 - y2)) / div
+    y = ((x1**2 + y1**2) * (x3 - x2) + (x2**2 + y2**2) * (x1 - x3) + (x3**2 + y3**2) * (x2 - x1)) / div
 
     center = Point.new(x, y)
     radius = fst.distance(center)
 
     Circle.new(center, radius)
   end
-
-  # Return the circumcircle of the three points.
-  # def self.circumcircle(fst, sec, trd)
-  #   x1, x2, x3 = fst.x, sec.x, trd.x
-  #   y1, y2, y3 = fst.y, sec.y, trd.y
-  #
-  #   puts "#{x1}, #{x2}, #{x3}, #{y1}, #{y2}, #{y3}"
-  #
-  #   return circleNil if (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) == 0
-  #
-  #   x = (((x3*x3 - x2*x2 + y3*y3 - y2*y2) / (2 * (y3 - y2))) - ((x2*x2 - x1*x1 + y2*y2 - y1*y1) / (2 * (y2 - y1)))) / (((x2 - x1) / (y2 - y1)) - ((x3 - x2) / (y3 - y2)))
-  #
-  #   y = (-((x2 - x1) / (y2 - y1))) * x + ((x2*x2 - x1*x1 + y2*y2 - y1*y1) / (2 * (y2 - y1)))
-  #
-  #   r = Math.sqrt((x1 - x)*(x1 - x) + (y1 - y)*(y1 - y))
-  #
-  #   puts "#{x}, #{y}, #{r}"
-  #   Circle.new(Point.new(x, y), r)
-  # end
 
   def self.circleNil
     Circle.new(Point.new(-1, -1), -1)
