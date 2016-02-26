@@ -11,8 +11,9 @@ um.exe
 *.tab.c
 *.tab.h
 mpp2prolog
-
 *.dot
 *.tbl
 *.jpg
 *.txt
+naive
+welzl
