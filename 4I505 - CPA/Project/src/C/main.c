@@ -12,10 +12,10 @@
 
 // For benchmark.
 double get_time() {
-    struct timeval t;
-    struct timezone tzp;
-    gettimeofday(&t, &tzp);
-    return t.tv_sec + t.tv_usec * 1e-6;
+  struct timeval t;
+  struct timezone tzp;
+  gettimeofday(&t, &tzp);
+  return t.tv_sec + t.tv_usec * 1e-6;
 }
 
 // Why C ? Because it's a rather speed language... ;)
@@ -23,22 +23,19 @@ int main(int argc, char const *argv[]) {
   srand(time(NULL));
 
   double elapsed_time;
-  bool pretty = true;
-  bool custom_file = false;
+  bool pretty = true, custom_file = false;
+  char open_file[4096];
+  DIR *files;
+  FILE *res;
   struct dirent *point_file;
-  char open_file[4096]; int i;
-  DIR *files; FILE *res;
 
   if (argc < 2) {
     fprintf(stderr, "No directory given... RTFM...\n");
     exit(EXIT_FAILURE);
-  }
+  } else if (argc > 3)
+    custom_file = true;
 
   files = opendir(argv[1]);
-
-  if (argc > 3) {
-    custom_file = true;
-  }
 
 #ifdef _NAIVE
   if (!custom_file)
@@ -71,15 +68,15 @@ int main(int argc, char const *argv[]) {
     // Get all points and let's go compute !
     struct pt *points;
     size_t size_tmp = read_points(open_file, &points);
-
     elapsed_time = get_time();
+
 #ifdef _NAIVE
     struct cl circle = naive(points, size_tmp);
 #else
     struct cl circle = welzl(points, size_tmp);
 #endif
-    elapsed_time = get_time() - elapsed_time;
 
+    elapsed_time = get_time() - elapsed_time;
     free(points);
 
     if (argc > 2) {
@@ -92,18 +89,26 @@ int main(int argc, char const *argv[]) {
 
     if (pretty) {
       // For the pretty printing.
-      int size = strlen(point_file->d_name);
+      int size = strlen(point_file->d_name), i;
       sprintf(open_file, "%s", point_file->d_name);
       for (i = size; i < 16; i++)
-      open_file[i] = ' ';
+	open_file[i] = ' ';
       open_file[i] = '\0';
 
       // AND HERE'S THE PRETTY PRINTING ! HELL YEAH !
-      fprintf(res, "%s  -- x: %10.4f, y: %10.4f, radius: %10.4f, time: %10.4f\n", open_file,
-              circle.center.x, circle.center.y, circle.radius, elapsed_time);
+      fprintf(res, "%s  -- x: %10.4f, y: %10.4f, radius: %10.4f, time: %10.4f\n",
+	      open_file,
+	      circle.center.x,
+	      circle.center.y,
+	      circle.radius,
+	      elapsed_time);
       fflush(res);
     } else {
-      fprintf(res, "%10.4f,%10.4f,%10.4f,%10.4f\n", circle.center.x, circle.center.y, circle.radius, elapsed_time);
+      fprintf(res, "%10.4f,%10.4f,%10.4f,%10.4f\n",
+	      circle.center.x,
+	      circle.center.y,
+	      circle.radius,
+	      elapsed_time);
       fflush(res);
     }
   }
