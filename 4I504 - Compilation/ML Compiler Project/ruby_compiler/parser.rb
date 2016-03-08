@@ -25,15 +25,15 @@ class Parser < RLTK::Parser
     clause('IDENT') { |name|  Variable.new(name) }
     clause('INT')   { |value| Int.new(value)     }
 
-    clause('expression expression')      { |expr1, expr2|      Apply.new(expr1, expr2)  }
-    clause('expression CONS expression') { |head, _, tail|     Cons.new(head, tail)     }
-    clause('MATCH expression WITH list') { |_, expr, _, list|  Matching.new(expr, list) }
+    clause('expression expression')        { |expr1, expr2|   Apply.new(expr1, expr2)  }
+    clause('.expression CONS .expression') { |head, tail|     Cons.new(head, tail)     }
+    clause('MATCH .expression WITH .list') { |expr, list|     Matching.new(expr, list) }
 
-    clause('expression ADD expression')  { |left, _, right|    Add.new(left, right) }
-    clause('expression MUL expression')  { |left, _, right|    Mul.new(left, right) }
-    clause('expression SUB expression')  { |left, _, right|    Sub.new(left, right) }
-    clause('expression LEQ expression')  { |left, _, right|    Leq.new(left, right) }
-    clause('expression GEQ expression')  { |left, _, right|    Geq.new(left, right) }
+    clause('.expression ADD .expression')  { |left, right|    Add.new(left, right) }
+    clause('.expression MUL .expression')  { |left, right|    Mul.new(left, right) }
+    clause('.expression SUB .expression')  { |left, right|    Sub.new(left, right) }
+    clause('.expression LEQ .expression')  { |left, right|    Leq.new(left, right) }
+    clause('.expression GEQ .expression')  { |left, right|    Geq.new(left, right) }
 
     clause('IF .expression THEN .expression ELSE .expression') do |cond, csq, alt|
       Conditionnal.new(cond, csq, alt)
@@ -44,7 +44,9 @@ class Parser < RLTK::Parser
     clause('PIPE NIL ARROW .expression PIPE .IDENT CONS .IDENT ARROW .expression') do |expr, head, tail, body|
       FullList.new(NilList.new(expr), ConsList.new(Cons.new(head, tail), body))
     end
-    clause('NIL ARROW expression') { |_, _, body| NilList.new(body) }
+    clause('NIL ARROW .expression') do |body|
+      NilList.new(body)
+    end
     clause('.IDENT CONS .IDENT ARROW .expression') do |head, tail, body|
       ConsList.new(head, tail, body)
     end
@@ -52,4 +54,4 @@ class Parser < RLTK::Parser
   finalize({:use => 'parser.tbl'})
 end
 
-puts Parser.parse(Lexer.lex_file('simple.mml'), {:parse_tree => true, :accept => :all})[2]
+puts Parser.parse(Lexer.lex_file('simple.ml'), {:parse_tree => true, :accept => :all})[2]
