@@ -5,6 +5,7 @@
 
 // Include header by bison.
 #include "ast.h"
+#include "parser.tab.h"
 
 %}
 

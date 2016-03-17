@@ -6,6 +6,7 @@
 
 ast_t *new_function(char *args, ast_t *body);
 ast_t *new_let(char *name, ast_t *value, ast_t *body);
+ast_t *new_let_rec(char *name, ast_t *value, ast_t *body);
 ast_t *new_nil();
 ast_t *new_true();
 ast_t *new_false();
@@ -16,3 +17,8 @@ ast_t *new_cons(ast_t *head, ast_t *tail);
 ast_t *new_match(ast_t *expr, ast_t *list);
 ast_t *new_bin(type_t type, ast_t *left, ast_t *right);
 ast_t *new_cond(ast_t *cond, ast_t *then, ast_t *elsse);
+ast_t *new_nil_l(ast_t *body);
+ast_t *new_cons_l(ast_t *cons, ast_t *body);
+ast_t *new_full_l(ast_t *first, ast_t *second);
+
+void free_program(ast_t *program);

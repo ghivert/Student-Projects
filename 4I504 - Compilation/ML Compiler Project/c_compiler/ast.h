@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdbool.h>
 
 typedef enum {
@@ -16,6 +18,7 @@ typedef enum {
   TYPE_LEQ,
   TYPE_GEQ,
   TYPE_LET,
+  TYPE_LET_R,
   TYPE_NIL_L,
   TYPE_CONS_L,
   TYPE_FULL_L
@@ -101,14 +104,14 @@ struct nil_list {
 
 struct cons_list {
   type_t type;
-  cons_t *list;
+  union ast *cons;
   union ast *body;
 };
 
 struct full_list {
   type_t type;
-  nil_list_t  *first;
-  cons_list_t *second;
+  union ast *first;
+  union ast *second;
 };
 
 typedef union ast {
