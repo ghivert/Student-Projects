@@ -1,0 +1,1468 @@
+
+// ###--------------------------------------------------------------### 
+// file		: asm_mips.yac						
+// date		: Jun 21 2010						
+// version	: v200							
+// author	: Pirouz Bazargan Sabet					
+// description	: assembler						
+// ###--------------------------------------------------------------### 
+
+%{
+#include <iostream>
+#include <Program.h>
+#include <Directive.h>
+#include <Label.h>
+#include <stdlib.h>
+#include <stdio.h>
+extern "C" {
+#include "utl200.h"
+#include "asm200.h"
+}
+#include <asm_mipsyac.h>
+#include<map>
+#include <sstream>
+
+#undef  yylex
+#define yylex         asm_mipslex
+#define yyrestart     asm_mipsrestart
+#define yyin          asm_mipsin
+
+extern "C" {extern int            yylex     (YYSTYPE *);}
+
+extern void           yyrestart ();
+extern int            yyparse   ();
+extern FILE           *yyin       ;
+
+Program prog ;
+
+
+map<int,string> strmap ;
+static int strmap_id ;
+
+void programparse(string file) {
+	// ###------------------------------------------------------### 
+	//    initialize global and static variables			
+	// ###------------------------------------------------------### 
+
+//	std::cout << "Starting parsing" << std::endl;
+	
+	strmap_id = 0;
+
+	yyin = fopen(file.c_str(), "r") ;
+	yyparse() ;
+	//std::cout << "Parsing done" << std::endl;
+}
+
+
+static void yyerror (char * str)
+	{ std::cout << "yyerror at line " << ASM_LINENO << " : " << str <<std::endl ;	}
+
+%}
+
+%union
+  {
+  struct utchn  *pchn    ;
+  unsigned int   uval    ;
+  char          *text    ;
+  }
+
+%token <uval>   _ALIGN_
+%token <uval>   _ASCII_
+%token <uval>   _ASCIIZ_
+%token <uval>   _BYTE_
+%token <uval>   _COMM_
+%token <uval>   _END_
+%token <uval>   _ENT_
+%token <uval>   _EQU_
+%token <uval>   _EXTERN_
+%token <uval>   _GLOBAL_
+%token <uval>   _LCOMM_
+%token <uval>   _NOREORDER_
+%token <uval>   _REORDER_
+%token <uval>   _SECTION_
+%token <uval>   _SET_
+%token <uval>   _SKIP_
+%token <uval>   _SPACE_
+%token <uval>   _WORD_
+%token <uval>    ARegister
+%token           Ampersand
+%token           Bar
+%token           CarriageReturn
+%token           Circomflex
+%token <uval>    Codop_hint_mem
+%token <uval>    Codop_label
+%token <uval>    Codop_n
+%token <uval>    Codop_od_rs
+%token <uval>    Codop_rd
+%token <uval>    Codop_rd_si16
+%token <uval>    Codop_rd_rs
+%token <uval>    Codop_rd_rs_rt
+%token <uval>    Codop_rd_rt_sham
+%token <uval>    Codop_rd_rt_rs
+%token <uval>    Codop_rd_rs_si16
+%token <uval>    Codop_rd_rs_ui16
+%token <uval>    Codop_rd_mem
+%token <uval>    Codop_rs
+%token <uval>    Codop_rs_label
+%token <uval>    Codop_rs_rt
+%token <uval>    Codop_rs_rt_label
+%token <uval>    Codop_rs_si16
+%token <uval>    Codop_rt_cop0r
+%token <uval>    Codop_rt_cop2r
+%token <uval>    Codop_rt_mem
+%token <uval>    Codop_ui20
+%token           Colon
+%token           Comma
+%token <uval>    Cop0Register
+%token           DoubleGreat
+%token           DoubleLess
+%token <text>    Identifier
+%token <uval>    IntegerRegister
+%token           LeftParen
+%token <uval>    Litteral
+%token <uval>    Macro_label
+%token <uval>    Macro_n
+%token <uval>    Macro_rd_i32
+%token <uval>    Macro_rd_rs
+%token <uval>    Macro_rd_rt
+%token <uval>    Macro_rd_label
+%token <uval>    Macro_rs_label
+%token           Minus
+%token           Plus
+%token <uval>    Register
+%token           RightParen
+%token           Slash
+%token           Star
+%token <text>    String
+// Add
+%token <text>    String2
+%token <text>    GCC_operator
+%token           Tilda
+// Add
+%token <text>   Arobase
+
+%type  <uval>    cop0_reg
+%type  <uval>    cop2_reg
+%type  <uval>    integer_register
+
+%type  <uval>    adding_operator
+%type  <uval>    logic_operator
+%type  <uval>    mul_div_operator
+%type  <uval>    shift_operator
+
+%type  <uval>    byte_immediate_list
+%type  <uval> ...byte_immediate..
+%type  <uval>    expression
+%type  <uval>    expr..addop__expr..
+%type  <uval>    expr__mulop__expr..mulop__expr..
+%type  <uval>    expr__logop__expr..logop__expr..
+%type  <uval>    expr__shfop__expr
+%type  <uval>    immediate
+%type  <text>    label
+%type  <uval>    primary
+%type  <uval>    signed_16_bit_immediate
+%type  <uval>    term
+%type  <uval>    unsigned_16_bit_immediate
+%type  <uval>    word_immediate_list
+%type  <uval> ...word_immediate..
+%type  <text>   .Identifier.
+%type  <uval>   _String
+
+%pure_parser
+%start assembly_file
+
+%%
+
+adding_operator
+	: Plus
+		{ $$ = ASM_OPR__PLUS ; }
+	| Minus
+		{ $$ = ASM_OPR__MINUS; }
+	;
+
+.a_label.
+	: //empty
+	| label
+	  Colon
+		{ prog.add_line(new Label($1)) ; }
+	;
+
+align_directive
+	: _ALIGN_
+	  Litteral
+		{	std::ostringstream lit ;
+		    lit << $2;
+			prog.add_line(new Directive(".align",lit.str())) ;
+		}
+	;
+
+..an_instruction..
+	: //empty
+	| ..an_instruction..
+	  an_instruction
+	;
+
+an_instruction
+	: .a_label.
+	  .unlabeled_instruction.
+	  CarriageReturn_ERR
+	| unlabeled_directive
+	  CarriageReturn_ERR
+	| error
+	  CarriageReturn_ERR
+	;
+
+assembly_file
+	: assembly_instructions
+	;
+
+assembly_instructions
+	: ..an_instruction..
+	;
+
+byte_immediate_list
+	: immediate
+	  ...byte_immediate..
+		{	std::ostringstream bylist ;
+		    bylist << $1 << strmap[$2] ;
+			strmap[strmap_id] = bylist.str() ;
+			$$ = $2 ;
+		}
+	;
+
+...byte_immediate..
+	: //empty
+		{	strmap_id++ ;
+			strmap[strmap_id] = "" ;
+			$$ = strmap_id ;
+		}
+	| ...byte_immediate..
+	  Comma
+	  immediate
+		{	std::ostringstream bylist ;
+		    bylist << strmap[$1] << "," << $3;
+			strmap[strmap_id] = bylist.str() ;
+			$$ = $1 ;
+		}
+	;
+
+CarriageReturn_ERR
+	: CarriageReturn
+	;
+
+cop0_reg
+	: Cop0Register
+		{ $$ = $1; }
+	;
+
+cop2_reg
+	: ARegister
+		{ $$ = $1 & 0x00003fff; }
+	;
+
+effective_instruction
+	: mips_instruction
+	| macro_instruction
+	;
+
+end_directive
+	: _END_
+	  .Identifier.
+	  	{	prog.add_line(new Directive(".end",$2,false)) ; }
+	;
+
+ent_directive
+	: _ENT_
+	  Identifier
+	  	{ prog.add_line(new Directive(".ent",$2,true)) ; }
+	;
+
+.Identifier.
+	: // empty
+		{ $$ = NULL; }
+	| Identifier
+		{ $$ = $1  ; }
+	;
+
+equ_directive
+	: _EQU_
+	  Identifier
+	  Comma
+	  immediate
+		{	std::ostringstream lit ;
+		    lit << $2 << ",	" << $4 ;
+			prog.add_line(new Directive(".equ",lit.str())) ;
+		}
+	;
+
+expr..addop__expr..
+	: expression
+		{ $$ = $1; }
+	| expr..addop__expr..
+	  adding_operator
+	  expression
+		{
+		if   ($2 == ASM_OPR__PLUS)
+			{$$ = $1 + $3;}
+		else
+			{$$ = $1 - $3;}
+		}
+	;
+
+expression
+	: LeftParen
+	  immediate
+	  RightParen
+		{ $$ =   $2; }
+	| Tilda
+	  LeftParen
+	  immediate
+	  RightParen
+		{ $$ = ~ $3; }
+	| Minus
+	  LeftParen
+	  immediate
+	  RightParen
+		{ $$ = - $3; }
+	| term
+		{ $$ =   $1; }
+	;
+
+expr__logop__expr..logop__expr..
+	: expression
+	  logic_operator
+	  expression
+		{
+		if   ($2 == ASM_OPR__OR  ) $$ = $1 | $3;
+		if   ($2 == ASM_OPR__AND ) $$ = $1 & $3;
+		if   ($2 == ASM_OPR__XOR ) $$ = $1 ^ $3;
+		}
+	| expr__logop__expr..logop__expr..
+	  logic_operator
+	  expression
+		{
+		if   ($2 == ASM_OPR__OR  ) $$ = $1 | $3;
+		if   ($2 == ASM_OPR__AND ) $$ = $1 & $3;
+		if   ($2 == ASM_OPR__XOR ) $$ = $1 ^ $3;
+		}
+	;
+
+expr__mulop__expr..mulop__expr..
+	: expression
+	  mul_div_operator
+	  expression
+		{
+		if   ($2 == ASM_OPR__MUL ) $$ = $1 * $3;
+		else                       $$ = $1 / $3;
+		}
+	| expr__mulop__expr..mulop__expr..
+	  Star
+	  expression
+		{ $$ = $1 * $3; }
+	;
+
+expr__shfop__expr
+	: expression
+	  shift_operator
+	  expression
+		{
+		if   ($2 == ASM_OPR__SHL ) $$ = $1 << $3;
+		else                       $$ = $1 >> $3;
+		}
+	;
+
+extern_directive
+	: _EXTERN_
+	  label
+		{	std::ostringstream lab ;
+		    lab << $2;
+			prog.add_line(new Directive(".extern",lab.str())) ;
+		}
+	;
+
+format_hint_mem
+	: Codop_hint_mem
+	  immediate
+	  Comma
+	  signed_16_bit_immediate
+	  LeftParen
+	  integer_register
+	  RightParen
+	  	{	t_Operator op ;
+			string m = strmap[$2] ;
+			
+			switch($1) {
+				case ASM_MPS__PREF : op = pref ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_hint_mem for format_hint_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPImmediate($2),new OPImmediate($4),new OPRegister($6,Src))) ;	
+		}
+	;
+
+format_label
+	: Codop_label
+	  immediate
+	  	{	t_Operator op ;
+			string m = strmap[$2] ;
+			
+			switch($1) {
+				case ASM_MPS__J : op = j ; break ;
+				case ASM_MPS__JAL : op = jal ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_label for format_label" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPLabel(m))) ;	
+		}
+	// FIX for gcc : gcc use j as jr and made macro expansion
+	| Codop_label
+	  integer_register
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__J : op = jr ; break ;
+				case ASM_MPS__JAL : op = jalr ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_label for format_label" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src))) ;
+		}
+	;
+
+format_n
+	: Codop_n
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__SYSCALL : op = syscallu ; break ;
+				case ASM_MPS__WAIT : op = waitn ; break ;
+				case ASM_MPS__RFE : op = rfe ; break ;
+				case ASM_MPS__ERET : op = eret ; break ;
+				case ASM_MPS__SYNC : op = sync_ ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_n for format_n" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op)) ;
+		}
+	;
+
+format_od_rs
+	: Codop_od_rs
+	  integer_register
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__JALR : op = jalr ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_od_rs for format_od_rs" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src))) ;
+		}
+	| Codop_od_rs
+	  integer_register
+	  Comma
+	  integer_register
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__JALR : op = jalr ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_od_rs for format_od_rs" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src))) ;
+		}
+	;
+
+format_rd
+	: Codop_rd
+	  integer_register
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__MFHI : op = mfhi ; break ;
+				case ASM_MPS__MFLO : op = mflo ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd for format_rd" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst))) ;
+		}
+	;
+
+format_rd_mem
+	: Codop_rd_mem
+	  integer_register
+	  Comma
+	  signed_16_bit_immediate
+	  LeftParen
+	  integer_register
+	  RightParen
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__LB : op = lb ; break ;
+				case ASM_MPS__LBU : op = lbu ; break ;
+				case ASM_MPS__LH : op = lh ; break ;
+				case ASM_MPS__LHU : op = lhu ; break ;
+				case ASM_MPS__LW : op = lw ; break ;
+				case ASM_MPS__LWL : op = lwl ; break ;
+				case ASM_MPS__LWR : op = lwr ; break ;
+				case ASM_MPS__LL : op = ll ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_mem for format_rd_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPImmediate($4),new OPRegister($6,Src))) ;
+		}
+	| Codop_rd_mem
+	  integer_register
+	  Comma
+	  GCC_operator
+	  LeftParen
+	  integer_register
+	  RightParen
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__LB : op = lb ; break ;
+				case ASM_MPS__LBU : op = lbu ; break ;
+				case ASM_MPS__LH : op = lh ; break ;
+				case ASM_MPS__LHU : op = lhu ; break ;
+				case ASM_MPS__LW : op = lw ; break ;
+				case ASM_MPS__LWL : op = lwl ; break ;
+				case ASM_MPS__LWR : op = lwr ; break ;
+				case ASM_MPS__LL : op = ll ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_mem for format_rd_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPExpression($4),new OPRegister($6,Src))) ;
+		}
+	| Codop_rd_mem
+	  integer_register
+	  Comma
+	  LeftParen
+	  integer_register
+	  RightParen
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__LB : op = lb ; break ;
+				case ASM_MPS__LBU : op = lbu ; break ;
+				case ASM_MPS__LH : op = lh ; break ;
+				case ASM_MPS__LHU : op = lhu ; break ;
+				case ASM_MPS__LW : op = lw ; break ;
+				case ASM_MPS__LWL : op = lwl ; break ;
+				case ASM_MPS__LWR : op = lwr ; break ;
+				case ASM_MPS__LL : op = ll ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_mem for format_rd_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($5,Src))) ;
+		}
+	| Codop_rd_mem
+	  integer_register
+	  Comma
+	  immediate
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__LB : op = lb ; break ;
+				case ASM_MPS__LBU : op = lbu ; break ;
+				case ASM_MPS__LH : op = lh ; break ;
+				case ASM_MPS__LHU : op = lhu ; break ;
+				case ASM_MPS__LW : op = lw ; break ;
+				case ASM_MPS__LWL : op = lwl ; break ;
+				case ASM_MPS__LWR : op = lwr ; break ;
+				case ASM_MPS__LL : op = ll ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_mem for format_rd_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPImmediate($4))) ;
+		}
+	;
+
+format_rd_si16
+	: Codop_rd_si16
+	  integer_register
+	  Comma
+	  signed_16_bit_immediate
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__LUI : op = lui ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_si16 for format_rd_si16" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPImmediate($4))) ;
+		}
+	| Codop_rd_si16
+	  integer_register
+	  Comma
+	  GCC_operator
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__LUI : op = lui ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_si16 for format_rd_si16" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPExpression($4))) ;
+		}
+	;
+
+format_rd_rs
+	: Codop_rd_rs
+	  integer_register
+	  Comma
+	  integer_register
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__CLO : op = clo ; break ;
+				case ASM_MPS__CLZ : op = clz ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rs for format_rd_rs" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src))) ;
+		}
+	;
+
+format_rd_rs_rt
+	: Codop_rd_rs_rt
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  integer_register
+		{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__ADD :	op = add; break ;
+				case ASM_MPS__ADDU :op = addu ; break ;
+				case ASM_MPS__AND :	op = and_ ; break ;
+				case ASM_MPS__MUL :	op = mul ; break ;
+				case ASM_MPS__NOR :	op = nor ; break ;
+				case ASM_MPS__OR :	op = or_ ; break ;
+				case ASM_MPS__SLT :	op = slt ; break ;
+				case ASM_MPS__SLTU :op = sltu ; break ;
+				case ASM_MPS__SUB :	op = sub ; break ;
+				case ASM_MPS__SUBU :op = subu ; break ;
+				case ASM_MPS__XOR :	op = xor_ ; break ;
+				case ASM_MPS__MOVN :op = movn ; break ;
+				case ASM_MPS__MOVZ :op = movz ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rs_rt for format_rd_rs_rt" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPRegister($6,Src))) ;
+		}
+	;
+
+format_rd_rs_si16
+	: Codop_rd_rs_si16
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  signed_16_bit_immediate
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__ADDI : op = addi ; break ;
+				case ASM_MPS__ADDIU : op = addiu ; break ;
+				case ASM_MPS__SLTI : op = slti ; break ;
+				case ASM_MPS__SLTIU : op = sltiu ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rs_si16 for format_rd_rs_si16" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPImmediate($6))) ;
+		}
+	| Codop_rd_rs_si16
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  GCC_operator
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__ADDI : op = addi ; break ;
+				case ASM_MPS__ADDIU : op = addiu ; break ;
+				case ASM_MPS__SLTI : op = slti ; break ;
+				case ASM_MPS__SLTIU : op = sltiu ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rs_si16 for format_rd_rs_si16" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPExpression($6))) ;
+		}
+	| Codop_rd_rs_rt
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  signed_16_bit_immediate
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__SLT : op = slti ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rs_si16 for format_rd_rs_si16" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPImmediate($6))) ;
+		}
+	;
+
+format_rd_rs_ui16
+	: Codop_rd_rs_ui16
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  unsigned_16_bit_immediate
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__ANDI : op = andi ; break ;
+				case ASM_MPS__ORI : op = ori ; break ;
+				case ASM_MPS__XORI : op = xori ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rs_ui16 for format_rd_rs_ui16" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPImmediate($6))) ;
+		}
+	;
+
+format_rd_rt_rs
+	: Codop_rd_rt_rs
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  integer_register
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__SLLV : op = sllv ; break ;
+				case ASM_MPS__SRLV : op = srlv ; break ;
+				case ASM_MPS__SRAV : op = srav ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rt_rs for format_rd_rt_rs" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPRegister($6,Src))) ;
+		}
+	;
+
+format_rd_rt_sham
+	: Codop_rd_rt_sham
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  immediate
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__SLL : op = sll ; break ;
+				case ASM_MPS__SRL : op = srl ; break ;
+				case ASM_MPS__SRA : op = sra ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rd_rt_sham for format_rd_rt_sham" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPImmediate($6))) ;
+		}
+	;
+
+format_rs
+	: Codop_rs
+	  integer_register
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__JR : op = jr ; break ;
+				case ASM_MPS__MTHI : op = mthi ; break ;
+				case ASM_MPS__MTLO : op = mtlo ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rs for format_rs" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src))) ;
+		}
+	;
+
+format_rs_label
+	: Codop_rs_label
+	  integer_register
+	  Comma
+	  immediate
+	  	{
+			t_Operator op ;
+			string m = strmap[$4] ;
+			switch($1) {
+				case ASM_MPS__BGEZ : op = bgez ; break ;
+				case ASM_MPS__BGEZAL : op = bgezal ; break ;
+				case ASM_MPS__BGTZ : op = bgtz ; break ;
+				case ASM_MPS__BLEZ : op = blez ; break ;
+				case ASM_MPS__BLTZ : op = bltz ; break ;
+				case ASM_MPS__BLTZAL : op = bltzal ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rs_label for format_rs_label" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPLabel(m))) ;
+		}
+
+	;
+
+format_rs_rt
+	: Codop_rs_rt
+	  integer_register
+	  Comma
+	  integer_register
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__MULT: op = mult; break ;
+				case ASM_MPS__MULTU: op = multu; break ;
+				case ASM_MPS__DIV: op = div_ ; break ;
+				case ASM_MPS__DIVU: op = divu ; break ;
+				case ASM_MPS__MADD: op = madd; break ;
+				case ASM_MPS__MADDU: op = maddu; break ;
+				case ASM_MPS__MSUB: op = msub; break ;
+				case ASM_MPS__MSUBU: op = msubu; break ;
+				case ASM_MPS__TEQ: op = teq; break ;
+				case ASM_MPS__TGE: op = tge; break ;
+				case ASM_MPS__TGEU: op = tgeu; break ;
+				case ASM_MPS__TLT: op = tlt; break ;
+				case ASM_MPS__TLTU: op = tltu; break ;
+				case ASM_MPS__TNE: op = tne ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rs_label for format_rs_label" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPRegister($4,Src))) ;
+		}
+	| Codop_rs_rt
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  integer_register
+	  	{
+			t_Operator op ;
+			if ($2 != 0 ) {
+				std::cerr << "Invalid $zero register for Codop_rs_label" << std::endl ;
+			}
+			switch($1) {
+				case ASM_MPS__MULT: op = mult; break ;
+				case ASM_MPS__MULTU: op = multu; break ;
+				case ASM_MPS__DIV: op = div_ ; break ;
+				case ASM_MPS__DIVU: op = divu ; break ;
+				case ASM_MPS__MADD: op = madd; break ;
+				case ASM_MPS__MADDU: op = maddu; break ;
+				case ASM_MPS__MSUB: op = msub; break ;
+				case ASM_MPS__MSUBU: op = msubu; break ;
+				case ASM_MPS__TEQ: op = teq; break ;
+				case ASM_MPS__TGE: op = tge; break ;
+				case ASM_MPS__TGEU: op = tgeu; break ;
+				case ASM_MPS__TLT: op = tlt; break ;
+				case ASM_MPS__TLTU: op = tltu; break ;
+				case ASM_MPS__TNE: op = tne ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rs_label for format_rs_label" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Dst),new OPRegister($4,Src),new OPRegister($6,Src))) ;
+		}
+	;
+
+format_rs_rt_label
+	: Codop_rs_rt_label
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  immediate
+	  	{
+			t_Operator op ;
+			string m = strmap[$6] ;
+			switch($1) {
+				case ASM_MPS__BEQ : op = beq ; break ;
+				case ASM_MPS__BNE : op = bne ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rs_rt_label for format_rs_rt_label" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPRegister($4,Src),new OPLabel(m))) ;
+		}
+	| Codop_rs_rt_label
+	  integer_register
+	  Comma
+	  integer_register
+	  Comma
+	  String2
+	  	{
+			t_Operator op ;
+			std::ostringstream lit ;
+		    lit  << $6 ;
+			switch($1) {
+				case ASM_MPS__BEQ : op = beq ; break ;
+				case ASM_MPS__BNE : op = bne ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rs_rt_label for format_rs_rt_label" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPRegister($4,Src),new OPLabel(lit.str()))) ;
+		}
+	;
+
+format_rs_si16
+	: Codop_rs_si16
+	  integer_register
+	  Comma
+	  signed_16_bit_immediate
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__TEQI: op = teqi; break ;
+				case ASM_MPS__TGEI: op = tgei; break ;
+				case ASM_MPS__TGEIU: op = tgeiu; break ;
+				case ASM_MPS__TLTI: op = tlti; break ;
+				case ASM_MPS__TLTIU: op = tltiu; break ;
+				case ASM_MPS__TNEI: op = tnei; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rs_si16 for format_rs_si16" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPImmediate($4))) ;
+		}
+	;
+
+format_rt_cop0r
+	: Codop_rt_cop0r
+	  integer_register
+	  Comma
+	  cop0_reg
+	  	{
+			t_Operator op ;
+			t_Src_Dst spin, spinc0 ;
+			switch($1) {
+				case ASM_MPS__MFC0: op = mfc0; spin = Dst ; spinc0 = CopSrc ; break ;
+				case ASM_MPS__MTC0: op = mtc0; spin = Src ; spinc0 = CopDst ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rt_cop0r for format_rt_cop0r" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,spin),new OPRegister($4,spinc0))) ;
+		}
+	;
+
+format_rt_cop2r
+	: Codop_rt_cop2r
+	  integer_register
+	  Comma
+	  cop2_reg
+	  	{
+			t_Operator op ;
+			t_Src_Dst spin, spinc0 ;
+			switch($1) {
+				case ASM_MPS__MFC2: op = mfc2; spin = Dst ; spinc0 = CopSrc ; break ;
+				case ASM_MPS__MTC2: op = mtc2; spin = Src ; spinc0 = CopDst ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rt_cop2r for format_rt_cop2r" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,spin),new OPRegister($4,spinc0))) ;
+		}
+	;
+
+format_rt_mem
+	: Codop_rt_mem
+	  integer_register
+	  Comma
+	  signed_16_bit_immediate
+	  LeftParen
+	  integer_register
+	  RightParen
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__SB: op = sb ; break ;
+				case ASM_MPS__SH: op = sh ; break ;
+				case ASM_MPS__SW: op = sw ; break ;
+				case ASM_MPS__SC: op = sc ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rt_mem for format_rt_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPImmediate($4),new OPRegister($6,Src))) ;
+		}
+	| Codop_rt_mem
+	  integer_register
+	  Comma
+	  LeftParen
+	  integer_register
+	  RightParen
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__SB: op = sb ; break ;
+				case ASM_MPS__SH: op = sh ; break ;
+				case ASM_MPS__SW: op = sw ; break ;
+				case ASM_MPS__SC: op = sc ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rt_mem for format_rt_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPRegister($5,Src))) ;
+		}
+	| Codop_rt_mem
+	  integer_register
+	  Comma
+	  immediate
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__SB: op = sb ; break ;
+				case ASM_MPS__SH: op = sh ; break ;
+				case ASM_MPS__SW: op = sw ; break ;
+				case ASM_MPS__SC: op = sc ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_rt_mem for format_rt_mem" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPRegister($2,Src),new OPImmediate($4))) ;
+		}
+	;
+
+format_ui20
+	: Codop_ui20
+	  immediate
+	  	{
+			t_Operator op ;
+			switch($1) {
+				case ASM_MPS__BREAK: op = break_ ; break ;
+				default: std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Codop_ui20 for format_ui20" << std::endl ; break ;
+			}
+			prog.add_line(new Instruction(op,new OPImmediate($2))) ;
+		}
+	;
+
+global_directive
+	: _GLOBAL_
+	  label
+		{	std::ostringstream lab ;
+		    lab << $2;
+			prog.add_line(new Directive(".global",lab.str())) ;
+		}
+	;
+
+signed_16_bit_immediate
+	: immediate
+		{ $$ = $1 & 0x0000ffff; }
+	;
+
+immediate
+	: expr..addop__expr..
+		{  $$ = $1; }
+	| expr__mulop__expr..mulop__expr..
+		{  $$ = $1; }
+	| expr__logop__expr..logop__expr..
+		{  $$ = $1; }
+	| expr__shfop__expr
+		{  $$ = $1; }
+	;
+
+integer_register
+	: IntegerRegister
+		{  $$ = $1; }
+	| ARegister
+		{ $$ = $1 & 0x0000001f; }
+	;
+
+label
+	: Identifier
+		{ $$ = $1; }
+	| Litteral
+		{	std::ostringstream str ;
+		    str << $1;
+			$$ = const_cast<char*>(str.str().c_str()) ;
+		}
+	| String2
+		{ 
+		std::cout << "Label String2 " << $1 << std::endl ;
+		$$ = $1; }
+	;
+
+labelable_directive
+	: memory_alloc_directive
+	;
+
+logic_operator
+	: Bar
+		{ $$ = ASM_OPR__OR   ; }
+	| Ampersand
+		{ $$ = ASM_OPR__AND  ; }
+	| Circomflex
+		{ $$ = ASM_OPR__XOR  ; }
+	;
+
+macro_instruction
+	: macro_rd_i32
+	| macro_rd_label
+	| macro_rd_rs
+	| macro_rd_rt
+	| macro_rs_label
+	| macro_label
+	| macro_n
+	;
+
+macro_label
+	: Macro_label
+	  immediate
+	  	{
+			string m = strmap[$2] ;
+	  		if ($1 != ASM_MPS__B) {
+				std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Macro_label" << std::endl ;
+			}
+			prog.add_line(new Instruction(bgez,new OPRegister(0,Src),new OPLabel(m))) ;
+		}
+	;
+
+macro_n
+	: Macro_n
+	  	{
+	  		if ($1 != ASM_MPS__NOP) {
+				std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Macro_n" << std::endl ;
+			}
+			prog.add_line(new Instruction(add,new OPRegister(0,Dst),new OPRegister(0,Src),new OPRegister(0,Src))) ;
+		}
+	;
+
+macro_rd_i32
+	: Macro_rd_i32
+	  integer_register
+	  Comma
+	  immediate
+	  	{
+	  		if ($1 != ASM_MPS__LI) {
+				std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Macro_rd_i32" << std::endl ;
+			}
+			int hi, lo ;
+			hi = ($4 >> 16) &  0x0000FFFF ;
+			lo = ($4      ) &  0x0000FFFF ;
+						
+			prog.add_line(new Directive(".set","noat")) ; 
+			prog.add_line(new Instruction(lui,new OPRegister(1,Dst),new OPImmediate(hi))) ;
+			prog.add_line(new Instruction(ori,new OPRegister($2,Dst),new OPRegister(1,Src),new OPImmediate(lo))) ;
+			prog.add_line(new Directive(".set","at")) ; 
+		}
+	;
+
+macro_rd_label
+	: Macro_rd_label
+	  integer_register
+	  Comma
+	  immediate
+	  	{
+			string m = strmap[$4] ;
+		    std::ostringstream oss_hi ;
+		    std::ostringstream oss_lo ;
+	  		if ($1 != ASM_MPS__LI) {
+				std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Macro_rd_i32" << std::endl ;
+			}
+
+		    oss_hi << "%hi(" << m << ")" ;
+		    oss_lo << "%lo(" << m << ")" ;
+						
+			prog.add_line(new Directive(".set","noat")) ; 
+			prog.add_line(new Instruction(lui,new OPRegister(1,Dst),new OPExpression(oss_hi.str()))) ;
+			prog.add_line(new Instruction(ori,new OPRegister($2,Dst),new OPRegister(1,Src),new OPExpression(oss_lo.str()))) ;
+			prog.add_line(new Directive(".set","at")) ; 
+		}
+	;
+
+macro_rd_rs
+	: Macro_rd_rs
+	  integer_register
+	  Comma
+	  integer_register
+	  	{
+	  		if ($1 != ASM_MPS__MOVE) {
+				std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Macro_rd_rs" << std::endl ;
+			}
+						
+			prog.add_line(new Instruction(or_,new OPRegister($2,Dst),new OPRegister($4,Src),new OPRegister(0,Src))) ;
+		}
+	;	
+
+macro_rd_rt
+	: Macro_rd_rt
+	  integer_register
+	  Comma
+	  integer_register
+	  	{
+	  		if ($1 == ASM_MPS__NEG) {
+				prog.add_line(new Instruction(sub,new OPRegister($2,Dst),new OPRegister(0,Src),new OPRegister($4,Src))) ;
+			} else if ($1 == ASM_MPS__NEGU) {
+				prog.add_line(new Instruction(subu,new OPRegister($2,Dst),new OPRegister(0,Src),new OPRegister($4,Src))) ;
+			} else {
+				std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Macro_rd_rt" << std::endl ; break ;
+			}
+		}
+	;
+
+macro_rs_label
+	: Macro_rs_label
+	  integer_register
+	  Comma
+	  immediate
+	  	{
+			string m = strmap[$4] ;
+	  		if ($1 == ASM_MPS__BEQZ) {
+				prog.add_line(new Instruction(beq,new OPRegister(0,Src),new OPRegister($2,Src),new OPLabel(m))) ;
+			} else if ($1 == ASM_MPS__BNEZ) {
+				prog.add_line(new Instruction(bne,new OPRegister(0,Src),new OPRegister($2,Src),new OPLabel(m))) ;
+			} else {
+				std::cerr<< "asm_mips.yac : " << $1 << "is not an valid Macro_rs_label" << std::endl ; break ;
+			}
+		}
+	;
+
+memory_alloc_directive
+	: memory_word_alloc 
+	| memory_byte_alloc
+	| memory_ascii_alloc
+	| memory_asciiz_alloc
+	| memory_skip_alloc
+	| memory_space_alloc
+	| memory_comm_alloc
+	| memory_lcomm_alloc
+	;
+
+memory_ascii_alloc
+	: _ASCII_
+	  String
+		{	std::ostringstream str ;
+		    str << $2 ;
+			prog.add_line(new Directive(".ascii",str.str())) ;
+		}
+	;
+
+memory_asciiz_alloc
+	: _ASCIIZ_
+	  String
+		{	std::ostringstream str ;
+		    str << $2 ;
+			prog.add_line(new Directive(".asciiz",str.str())) ;
+		}
+	;
+
+memory_byte_alloc
+	: _BYTE_
+	  byte_immediate_list
+			{prog.add_line(new Directive(".byte",strmap[$2])) ;}
+	;
+
+memory_lcomm_alloc
+	: _LCOMM_
+	  Identifier
+	  Comma
+	  Litteral
+		{	std::ostringstream str ;
+		    str << $2 << "," << $4 ;
+			prog.add_line(new Directive(".lcomm",str.str())) ;
+		}
+	;
+
+memory_comm_alloc
+	: _COMM_
+	  Identifier
+	  Comma
+	  Litteral
+	  Comma
+	  Litteral
+		{	std::ostringstream str ;
+		    str << $2 << "," << $4 << "," << $6;
+			prog.add_line(new Directive(".comm",str.str())) ;
+		}
+	;
+
+memory_space_alloc
+	: _SPACE_
+	  Litteral
+		{	std::ostringstream str ;
+		    str << $2 ;
+			prog.add_line(new Directive(".space",str.str())) ;
+		}
+	;
+
+memory_skip_alloc
+	: _SKIP_
+	  Litteral
+		{	std::ostringstream str ;
+		    str << $2 ;
+			prog.add_line(new Directive(".skip",str.str())) ;
+		}
+	;
+
+memory_word_alloc
+	: _WORD_
+	  word_immediate_list
+			{prog.add_line(new Directive(".word",strmap[$2])) ;}
+	;
+
+mips_instruction
+	: format_hint_mem
+	| format_label
+	| format_n
+	| format_od_rs
+	| format_rd
+	| format_rd_mem
+	| format_rd_rs
+	| format_rd_rs_rt
+	| format_rd_rs_si16
+	| format_rd_rs_ui16
+	| format_rd_rt_rs
+	| format_rd_rt_sham
+	| format_rd_si16
+	| format_rs
+	| format_rs_label
+	| format_rs_rt
+	| format_rs_rt_label
+	| format_rs_si16
+	| format_rt_mem
+	| format_rt_cop0r
+	| format_rt_cop2r
+	| format_ui20
+	;
+
+mul_div_operator
+	: Star
+		{ $$ = ASM_OPR__MUL  ; }
+	| Slash
+		{ $$ = ASM_OPR__DIV  ; }
+	;
+
+primary
+	: Litteral
+		{ $$ = $1; }
+	| Identifier
+		{	
+			strmap_id++ ;
+			strmap[strmap_id] = $1 ;
+			$$ = strmap_id ;
+		}
+	;
+
+section_specification_directive
+	: _SECTION_
+	  Identifier
+		{ 	
+			prog.add_line(new Directive(".section",$2)) ;
+		}
+	| Identifier
+		{
+			prog.add_line(new Directive($1)) ;
+		}
+	;
+
+set_directive
+	: _SET_
+	  _REORDER_
+		{	prog.add_line(new Directive(".set","reorder")) ; }
+	| _SET_
+	  _NOREORDER_
+		{	prog.add_line(new Directive(".set","noreorder")) ; }
+	| _SET_
+	  immediate
+		{	string m = strmap[$2] ;
+			prog.add_line(new Directive(".set",m)) ; }
+	;
+
+// Add
+other_directive
+	: Identifier
+	_String
+		{	std::ostringstream dir ;
+		    dir << $1 ;
+			prog.add_line(new Directive(dir.str(),strmap[strmap_id])) ;
+		}
+	;
+
+_String
+	: 
+		{	strmap_id++ ;
+			strmap[strmap_id] = "" ;
+			$$ = strmap_id ;
+		}
+	| _String
+	  String
+		{	std::ostringstream str ;
+		    str << strmap[$1] << " " << $2;
+			strmap[strmap_id] = str.str() ;
+			$$ = $1 ;
+		}
+	| _String
+	  Comma
+		{	std::ostringstream str ;
+		    str << strmap[$1] << "," ;
+			strmap[strmap_id] = str.str() ;
+			$$ = $1 ;
+		}
+	| _String
+	  Arobase
+		{	std::ostringstream str ;
+		    str << strmap[$1] << "@";
+			strmap[strmap_id] = str.str() ;
+			$$ = $1 ;
+		}
+	| _String
+	  integer_register
+		{	std::ostringstream str ;
+		    str << strmap[$1] << "$" << $2 ;
+			strmap[strmap_id] = str.str() ;
+			$$ = $1 ;
+		}
+	| _String
+	  Identifier
+		{	std::ostringstream str ;
+		    str << strmap[$1] << $2;
+			strmap[strmap_id] = str.str() ;
+			$$ = $1 ;
+		}
+	| _String
+	  Litteral
+		{	std::ostringstream str ;
+		    str << strmap[$1] << $2;
+			strmap[strmap_id] = str.str() ;
+			$$ = $1 ;
+		}
+	| _String
+	  Minus
+		{	std::ostringstream str ;
+		    str << strmap[$1] << "-";
+			strmap[strmap_id] = str.str() ;
+			$$ = $1 ;
+		}
+
+shift_operator
+	: DoubleLess
+		{ $$ = ASM_OPR__SHL  ; }
+	| DoubleGreat
+		{ $$ = ASM_OPR__SHR  ; }
+	;
+
+term
+	: primary
+		{ $$ =   $1; }
+	| Minus
+	  primary
+		{ $$ = - $2; }
+	| Tilda
+	  primary
+		{ $$ = ~ $2; }
+	;
+
+unlabeled_directive
+	: align_directive
+	| section_specification_directive
+	| equ_directive
+	| global_directive
+	| extern_directive
+	| set_directive
+	| ent_directive
+	| end_directive
+	// Add
+	| other_directive
+	;
+
+.unlabeled_instruction.
+	: //empty
+	| labelable_directive
+	| effective_instruction
+	;
+
+unsigned_16_bit_immediate
+	: immediate
+		{	$$ = $1 & 0x0000ffff; }
+	;
+
+word_immediate_list
+	: immediate
+	  ...word_immediate..
+		{	std::ostringstream bylist ;
+		    bylist << $1 << strmap[$2] ;
+			strmap[strmap_id] = bylist.str() ;
+			$$ = $2 ;
+		}
+	;
+
+...word_immediate..
+	: //empty
+		{	strmap_id++ ;
+			strmap[strmap_id] = "" ;
+			$$ = strmap_id ;
+		}
+	| ...word_immediate..
+	  Comma
+	  immediate
+		{	std::ostringstream bylist ;
+		    bylist << strmap[$1] << "," << $3;
+			strmap[strmap_id] = bylist.str() ;
+			$$ = $1 ;
+		}
+	;
+
+%%
