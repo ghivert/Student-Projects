@@ -9,6 +9,7 @@ typedef struct _command           Command;
 typedef struct _declaration       Declaration;
 typedef struct _type_expression   TypeExpression;
 typedef struct _stat              Stat;
+
 typedef struct _unary_operation   UnaryOperation;
 typedef struct _binary_operation  BinaryOperation;
 typedef struct _expression        Expression;
@@ -20,8 +21,8 @@ Commands *new_commands(Command *content, Commands *next);
 Command  *new_declaration(Declaration *decl);
 Command  *new_stat(Stat *stat);
 
-Declaration *new_const(char *name, Expression *content);
-Declaration *new_var(char *name, TypeExpression *content);
+Declaration *new_const(char *name, TypeExpression *type, Expression *content);
+Declaration *new_var(char *name, TypeExpression *type, Expression *content);
 
 TypeExpression *new_type_expression(int type);
 
@@ -107,10 +108,8 @@ struct _type_expression {
 struct _declaration {
   int token;
   char *name;
-  union {
-    Expression *expr;
-    TypeExpression *t_expr;
-  } content;
+  Expression *expr;
+  TypeExpression *t_expr;
 };
 
 struct _command {

@@ -37,20 +37,22 @@ Command *new_stat(Stat *stat) {
 }
 
 // Creates a new Const.
-Declaration *new_const(char *name, Expression *content) {
+Declaration *new_const(char *name, TypeExpression *type, Expression *content) {
   Declaration *r_decl = malloc(sizeof *r_decl);
   r_decl->token = TOK_CONST;
   r_decl->name = name;
-  r_decl->content.expr = content;
+  r_decl->expr = content;
+  r_decl->t_expr = type;
   return r_decl;
 }
 
 // Creates a new Var.
-Declaration *new_var(char *name, TypeExpression *content) {
+Declaration *new_var(char *name, TypeExpression *type, Expression *content) {
   Declaration *r_decl = malloc(sizeof *r_decl);
   r_decl->token = TOK_VAR;
   r_decl->name = name;
-  r_decl->content.t_expr = content;
+  r_decl->t_expr = type;
+  r_decl->expr = content;
   return r_decl;
 }
 
@@ -203,10 +205,10 @@ void free_type_expression(TypeExpression *t_expr) {
 }
 
 void free_declaration(Declaration *decl) {
-  if (decl->token == TOK_CONST)
-    free_expression(decl->content.expr);
-  else if (decl->token == TOK_VAR)
-    free_type_expression(decl->content.t_expr);
+  if (decl->expr)
+    free_expression(decl->expr);
+  if (decl->t_expr)
+    free_type_expression(decl->t_expr);
   free(decl->name);
   free(decl);
 }

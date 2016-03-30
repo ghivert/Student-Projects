@@ -11,9 +11,11 @@ um.exe
 *.tab.c
 *.tab.h
 mpp2prolog
+mpp_eval
 *.dot
 *.tbl
 *.jpg
 *.txt
 naive
 welzl
+ml2c

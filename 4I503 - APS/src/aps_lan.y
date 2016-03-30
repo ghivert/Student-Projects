@@ -8,6 +8,7 @@
   #include "ast.h"
   #include "ast_access.h"
   #include "ast_print.h"
+  #include "eval_ast.h"
 
   // To avoid warnings.
   int yylex();
@@ -107,13 +108,13 @@ _Command:
 ;
 
 _Declaration:
-    TOK_CONST   IDENT   _Expression       { $$ = new_const($2, $3); }
-  | TOK_VAR     IDENT   _TypeExpression   { $$ = new_var($2, $3);   }
+    TOK_CONST  IDENT  _TypeExpression  _Expression { $$ = new_const($2, $3, $4); }
+  | TOK_VAR    IDENT  _TypeExpression  _Expression { $$ = new_var($2, $3, $4);   }
 ;
 
 _TypeExpression:
-    TYPE_BOOL   { $$ = new_type_expression(TYPE_BOOL); }
-  | TYPE_INT    { $$ = new_type_expression(TYPE_INT);  }
+    TYPE_BOOL   { $$ = new_type_expression(BOOL); }
+  | TYPE_INT    { $$ = new_type_expression(INT);  }
 ;
 
 _Stat:
@@ -169,11 +170,9 @@ int main(int argc, char *argv[]) {
     fclose(yyin);
 
     // Writing to output.
-    yyout = fopen(replace_str(argv[i], ".mpp", ".out"), "w");
-    fprintf(yyout, "prog(");
-    print_program(yyout, program);
-    fprintf(yyout, ")");
-    fclose(yyout);
+    print_env();
+    eval_program(program);
+    print_env();
 
     free_program(program);
   }

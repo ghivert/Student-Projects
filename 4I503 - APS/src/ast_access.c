@@ -35,11 +35,11 @@ char *get_declaration_name(Declaration *decl) {
 }
 
 Expression *get_declaration_expression(Declaration *decl) {
-  return decl->content.expr;
+  return decl->expr;
 }
 
 TypeExpression *get_declaration_type_expression(Declaration *decl) {
-  return decl->content.t_expr;
+  return decl->t_expr;
 }
 
 int get_stat_type(Stat *stat) {

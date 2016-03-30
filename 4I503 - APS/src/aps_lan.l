@@ -1,5 +1,5 @@
 %{
-  
+
 // Include header for atoi.
 #include <stdlib.h>
 
