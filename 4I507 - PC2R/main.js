@@ -2,6 +2,7 @@
 
 const electron = require('electron')
 const client   = require('./lib/client/client.js')
+const ipcMain  = electron.ipcMain
 
 electron.dialog.showErrorBox = function (title, content) {}
 
@@ -12,6 +13,7 @@ global.mainWindow = null                         // Global Reference for GC
 global.ready = { 'ready': false }
 
 const quit_debug = true
+var win
 
 // Creating GUI.
 function createWindow() {
@@ -21,6 +23,11 @@ function createWindow() {
     titleBarStyle: "hidden"
   })
   global.mainWindow.loadURL('file://' + __dirname + '/index.html')
+  win = new BrowserWindow({
+    width: 900,
+    height: 700
+  })
+  win.loadURL('file://' + __dirname + '/login.html')
 
   global.mainWindow.on('closed', function() {
     global.mainWindow = null
@@ -31,7 +38,8 @@ app.on('ready', function() {
   // Connecting to the server.
   createWindow()
   try {
-    global.mainWindow.webContents.on('did-finish-load', function() {
+    ipcMain.on('name', function() {
+      win.close()
       client.connect()
     })
   } catch (err) {
