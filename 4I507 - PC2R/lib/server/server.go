@@ -101,7 +101,7 @@ func (h *hub) run() {
 
 func game(h *hub, session chan []byte, start chan int) {
 	max_round := 500
-	reflexion_time := 60 // seconds
+	reflexion_time := 30 // seconds
 	bid_time := 30 // seconds
 	res_time := 30
 	max_bid := 1000000000 // 1000000000 is just a random 'big' number
@@ -207,9 +207,10 @@ func game(h *hub, session chan []byte, start chan int) {
 					fmt.Fprintln(os.Stderr, "/!\\ Wrong request: ", string(value[:]))
 		    	}
 			}
-			h.broadcast <- []byte("FINREFLEXION/\n")
-			fmt.Fprintln(os.Stderr, "*** Reflexion phase over. Min = ", min)
 		}
+		
+		h.broadcast <- []byte("FINREFLEXION/\n")
+		fmt.Fprintln(os.Stderr, "*** Reflexion phase over. Min = ", min)
 
 		// ENCHERES
 		timeout_chan = make(chan int)
@@ -365,6 +366,7 @@ func check_solution(board []Wall, enigme string, sol string, nb_coups int) bool 
 	}
 	positions := strings.Split(enigme, ",")
 
+check_loop:
 	for len(sol) > 0 {
 
 		robot, ok := corres[sol[:1]]
@@ -381,9 +383,27 @@ func check_solution(board []Wall, enigme string, sol string, nb_coups int) bool 
 			    for y > 1 {
 					for _, wall := range board {
 						if wall.x == x && wall.y == y && wall.orient == "H" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x && y2 == y-1 {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						if wall.x == x && wall.y == y-1 && wall.orient == "B" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x && y2 == y-1 {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						y--
@@ -393,9 +413,27 @@ func check_solution(board []Wall, enigme string, sol string, nb_coups int) bool 
 			    for y < 16 {
 					for _, wall := range board {
 						if wall.x == x && wall.y == y && wall.orient == "B" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x && y2 == y+1 {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						if wall.x == x && wall.y == y+1 && wall.orient == "H" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x && y2 == y+1 {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						y++
@@ -405,9 +443,27 @@ func check_solution(board []Wall, enigme string, sol string, nb_coups int) bool 
 			    for x > 1 {
 					for _, wall := range board {
 						if wall.y == y && wall.x == x && wall.orient == "G" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x-1 && y2 == y {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						if wall.y == y && wall.x == x-1 && wall.orient == "D" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x-1 && y2 == y {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						x--
@@ -417,9 +473,27 @@ func check_solution(board []Wall, enigme string, sol string, nb_coups int) bool 
 			    for x < 16 {
 					for _, wall := range board {
 						if wall.y == y && wall.x == x && wall.orient == "D" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x+1 && y2 == y {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						if wall.y == y && wall.x == x+1 && wall.orient == "G" {
+							for i := 0; i < 4; i++ {
+								if i != robot {
+									x2, _ := strconv.Atoi(positions[robot*2])
+									y2, _ := strconv.Atoi(positions[robot*2+1])
+									if x2 == x+1 && y2 == y {
+										continue check_loop
+									}
+								}
+							}
 							goto update_coord
 						}
 						x++
@@ -428,6 +502,7 @@ func check_solution(board []Wall, enigme string, sol string, nb_coups int) bool 
 			default:
 			    fmt.Fprintln(os.Stderr, "Direction inconnue : ", dir)
 		}
+		continue check_loop
 	update_coord:
 		positions[robot*2]   = strconv.Itoa(x)
 		positions[robot*2+1] = strconv.Itoa(y)
