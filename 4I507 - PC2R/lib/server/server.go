@@ -101,9 +101,9 @@ func (h *hub) run() {
 
 func game(h *hub, session chan []byte, start chan int) {
 	max_round := 500
-	reflexion_time := 3 // seconds
-	bid_time := 2 // seconds
-	res_time := 2
+	reflexion_time := 60 // seconds
+	bid_time := 30 // seconds
+	res_time := 30
 	max_bid := 1000000000 // 1000000000 is just a random 'big' number
 
 
@@ -180,32 +180,36 @@ func game(h *hub, session chan []byte, start chan int) {
 		fmt.Fprintln(os.Stderr, "*** Reflexion phase")
 		var min int = max_bid
 		var minName string
-		select {
+
+		reflexion_phase:
+		for {
+			select {
 		    case <- timeout_chan:
-			    break
+			    break reflexion_phase
 		    case action := <- h.action:
 			    value := action.value
 			    user  := action.user
 			    s := strings.Split(string(value[:]), "/")
 			    if nb, err := strconv.Atoi(s[2]);
-			       s[0] == "SOLUTION" && s[1] == user.name && err == nil {
-					   if _, ok := bids[user.name]; ok {
-						   min = nb
-						   minName = user.name
-						   bids[user.name] = nb
-						   user.send <- []byte("TUASTROUVE/\n")
-						   h.broadcast <-
-							   []byte("ILATROUVE/" + user.name + "/" + s[2] + "/\n")
-						   break
-					   } else {
-						   fmt.Fprintln(os.Stderr, "/!\\ Not allowed client : ", user.name)
-					   }
+				s[0] == "SOLUTION" && s[1] == user.name && err == nil {
+					if _, ok := bids[user.name]; ok {
+						min = nb
+						minName = user.name
+						bids[user.name] = nb
+						user.send <- []byte("TUASTROUVE/\n")
+						h.broadcast <-
+							[]byte("ILATROUVE/" + user.name + "/" + s[2] + "/\n")
+						break reflexion_phase
+					} else {
+						fmt.Fprintln(os.Stderr, "/!\\ Not allowed client : ", user.name)
+					}
 				} else {
 					fmt.Fprintln(os.Stderr, "/!\\ Wrong request: ", string(value[:]))
 		    	}
+			}
+			h.broadcast <- []byte("FINREFLEXION/\n")
+			fmt.Fprintln(os.Stderr, "*** Reflexion phase over. Min = ", min)
 		}
-		h.broadcast <- []byte("FINREFLEXION/\n")
-		fmt.Fprintln(os.Stderr, "*** Reflexion phase over. Min = ", min)
 
 		// ENCHERES
 		timeout_chan = make(chan int)
@@ -521,6 +525,8 @@ func client(c net.Conn, h *hub) {
 
 func main() {
 	fmt.Fprintln(os.Stderr,"Launching server...\n")
+
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	h := newHub()
 	go h.run()
