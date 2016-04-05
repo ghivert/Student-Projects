@@ -69,6 +69,7 @@ exports.processData = function(data) {
         break
       } case 'FINREFLEXION': {
         values.state = "ENCHERES"
+        chan.send('fin-reflexion')
         break
       } case 'VALIDATION': {
         console.log(input);

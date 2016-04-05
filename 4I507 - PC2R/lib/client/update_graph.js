@@ -157,6 +157,10 @@ function opponents() {
   ipc.on('il-a-trouve', function(event, message) {
     alert("Solution proposée par " + message[0] + " en " + message[1] + " coups.")
   })
+
+  ipc.on('fin-reflexion', function(event, message) {
+    alert('Fin de la période de réflexion. Début des enchères.')
+  })
 }
 
 function updateChat() {
@@ -176,7 +180,7 @@ function updateBidding(event) {
   if (values.state === "REFLEXION")
     if (event.keyCode === 13) {
       let bid = document.getElementById('bid')
-      values.client.write('ENCHERE/' + values.user + '/' + bid.value + '/')
+      values.client.write('SOLUTION/' + values.user + '/' + bid.value + '/')
       delete bid.value
     }
   else if (values.state === "ENCHERES")
