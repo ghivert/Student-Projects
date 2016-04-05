@@ -208,7 +208,7 @@ func game(h *hub, session chan []byte, start chan int) {
 		    	}
 			}
 		}
-		
+
 		h.broadcast <- []byte("FINREFLEXION/\n")
 		fmt.Fprintln(os.Stderr, "*** Reflexion phase over. Min = ", min)
 
@@ -583,6 +583,7 @@ func client(c net.Conn, h *hub) {
 			return
 		}
 		go func () {
+			fmt.Fprintln(os.Stderr, string(message[:]))
 			s := strings.Split(string(message[:]), "/")
 			switch s[0] {
 	    	case "SORT":

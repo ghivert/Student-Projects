@@ -184,7 +184,6 @@ function updateBidding(event) {
       delete bid.value
     }
   else if (values.state === "ENCHERES")
-  console.log(values.state);
     if (event.keyCode === 13) {
       let bid = document.getElementById('bid')
       values.client.write('ENCHERE/' + values.user + '/' + bid.value + '/')

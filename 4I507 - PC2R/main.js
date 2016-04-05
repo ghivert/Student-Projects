@@ -19,13 +19,13 @@ var win
 function createWindow() {
   global.mainWindow = new BrowserWindow({
     width: 900,
-    height: 700,
+    height: 800,
     titleBarStyle: "hidden"
   })
   global.mainWindow.loadURL('file://' + __dirname + '/index.html')
   win = new BrowserWindow({
     width: 900,
-    height: 700
+    height: 800
   })
   win.loadURL('file://' + __dirname + '/login.html')
 
