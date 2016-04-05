@@ -18,7 +18,7 @@ Aucune compilation du serveur n'est nécessaire.
 
 ### Client
 Le serveur est écrit en Javascript, à l'aide de Node.js, et du framework Electron.
-Sur une distribution Linux, il faut tout d'abord installer Node.js, puis, à l'aide du gestionnaire de package npm, il faut installer le package electron-prebuilt. Installé globalement, il permet d'accéder à l'éxecutable electron. Sinon, il faut éxecuter celui-ci depuis son package dans les node_modules. Par la suite, il sera supposé que electorn est installé globalement.
+Sur une distribution Linux, il faut tout d'abord installer Node.js, puis, à l'aide du gestionnaire de package npm, il faut installer le package electron-prebuilt. Installé globalement, il permet d'accéder à l'éxecutable electron. Pour installer Node facilement, celui-ci est disponible sur les principaux gestionnaire de package (`apt-get install nodejs` ou `dnf install nodejs`), ou sur Mac, via Homebrew (brew install nodejs). Ensuite, pour installer Electron de manière globale, il lancer la commande `npm install -g electron-prebuilt`. Si jamais Electron n'est pas sur le path, utiliser la commande `npm install electron-prebuilt`, permet de l'installer en local, dans le dossier node_modules.
 
 # Guide d'utilisation
 ### Lancement
@@ -27,7 +27,7 @@ Commencez par lancer le serveur depuis un terminal à l'aide de la commande :
 Un certain nombre de messages de status et de progression s'afficheront sur la sortie d'erreur. Si vous souhaitez vous en passer, lancez plutot la commande :
 `go run server.go 2>/dev/null`
 <br>
-Vous pouvez maintenant lancer le client comme suit : `electron .`
+Vous pouvez maintenant lancer le client comme suit : `electron .` ou `./node_modules/electron-prebuilt/bin/electron .``
 
 
 ### Déroulement de la partie
