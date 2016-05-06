@@ -100,16 +100,16 @@ func (h *hub) run() {
 }
 
 func game(h *hub, session chan []byte, start chan int) {
-	max_round := 500
-	reflexion_time := 30 // seconds
-	bid_time := 2 // seconds
-	res_time := 30
+	max_round := 10
+	reflexion_time := 240 // seconds
+	bid_time := 30 // seconds
+	res_time := 45
 	max_bid := 1000000000 // 1000000000 is just a random 'big' number
 
 
 	// waiting for 2 players to start
 	<- start
-	// <- start
+	<- start
 	fmt.Fprintln(os.Stderr, "Minimum number of clients reached -> starting the game.")
 
 	/* the game board.
@@ -118,6 +118,7 @@ func game(h *hub, session chan []byte, start chan int) {
          - a Wall array (Wall = coordonates + orientation) to check if solutions are valids.
          - a string array helps building those 2 representations
     */
+main_loop:
 	for {
 		board_walls := []string{"(4,1,D)","(6,3,D)","(6,3,B)","(3,5,H)","(3,5,D)",
 			"(1,5,B)","(8,6,G)","(8,6,B)","(2,7,H)","(2,7,G)","(8,8,G)","(8,8,H)","(10,1,D)",
@@ -140,15 +141,18 @@ func game(h *hub, session chan []byte, start chan int) {
 		// Notifying the start of the game to the clients.
 		session     <- []byte("SESSION/" + board + "/\n")
 		h.broadcast <- []byte("SESSION/" + board + "/\n")
-		// fmt.Fprintln(os.Stderr, "  ~~~ board sent")
+
+		for p := range h.clients {
+			p.score = 0
+		}
 
 		// the game loop.
 		for round_nb := 1; round_nb <= max_round; round_nb++ {
 
 			// If there is only 0 or 1 client, exiting.
-			if len(h.clients) < 1 {
-				// fmt.Fprintln(os.Stderr, "/!\\ Not enough clients, exiting")
-				break
+			if len(h.clients) < 2 {
+				fmt.Fprintln(os.Stderr, "/!\\ Not enough clients, exiting.")
+				break main_loop
 			}
 
 			// PHASE DE REFLEXION
