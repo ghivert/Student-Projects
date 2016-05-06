@@ -355,7 +355,7 @@ void Basic_block::comput_pred_succ_dep(){
   
   link_instructions();
   if (!dep_done) {
-    Instruction i_current = get_last_instruction(), itmp;
+    Instruction *i_current = get_last_instruction(), *itmp;
    
     while (i_current) {
       itmp = i_current->get_prev();
@@ -385,14 +385,11 @@ void Basic_block::comput_pred_succ_dep(){
     }
    
     itmp = get_last_instruction()->get_prev();
-    if (itmp->is_branch) {
+    if (itmp->is_branch()) {
       for (int i = 0; i < get_nb_inst() - 2; i++) {     
 	i_current = get_instruction_at_index(i);
-	for (int j = i+1; j < get_nb_inst(); j++)
-	  if (i_current->get_pred_dep(j)->type != NONE) 
-	    goto fin;
-	add_dep_link(itmp, i_current, CONTROL);
-      fin:
+	if (i_current->get_nb_succ() == 0) 
+	  add_dep_link(itmp, i_current, CONTROL);
       }
     }
     // NE PAS ENLEVER : cette fonction ne doit être appelée qu'une seule fois
@@ -414,7 +411,7 @@ void Basic_block::reset_pred_succ_dep(){
 /* calcul le nb de cycles pour executer le BB, on suppose qu'une instruction peut sortir du pipeline à chaque cycle, il faut trouver les cycles de gel induit par les dépendances */
 
 int Basic_block::nb_cycles() {
-  
+  /*
   Instruction *ic = get_last_instruction();
   // int instruction = 0;
   // int cycle = 1;
@@ -422,13 +419,13 @@ int Basic_block::nb_cycles() {
   for (int i = 0; i < get_nb_inst(); i++) {
     inst_cycle[i] = 0;
   }
-  Comput_pred_succ_dep();
+  comput_pred_succ_dep();
   
   inst_cycle[get_nb_inst()-1] = 1;
   while (ic != get_first_instruction()) {
     
   }
-    
+   
   /*
   while (ic != NULL) {
     for (Instruction *next = ic->get_prev(); next != NULL; next = next->get_prev())
@@ -441,7 +438,6 @@ int Basic_block::nb_cycles() {
     ic = ic->get_prev();
     }
   */
-  // FINFOR
   return 0;
 }
 
