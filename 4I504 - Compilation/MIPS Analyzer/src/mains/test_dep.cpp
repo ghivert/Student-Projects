@@ -83,7 +83,7 @@ int main(int argc, char * argv[]){
 	      */
 	      /* renommage en utilisant des registres n'existant pas */
 	      
-	      //  bb->reg_rename(&frees);
+	      // bb->reg_rename(&frees);
 
 	      /* renommage utilisant les registres disponibles dans le bloc */
 	      /*  ne pas faire les 2 */

@@ -358,38 +358,38 @@ void Basic_block::comput_pred_succ_dep(){
     Instruction *i_current = get_last_instruction(), *itmp;
    
     while (i_current) {
-      itmp = i_current->get_prev();
       int fin = 0;
-      while (itmp) {
-	if (itmp->is_dep_RAW1(i_current) && !(fin & 1)) {
-	  add_dep_link(itmp, i_current, RAW);
-	  fin |= 1;
-	}
-	if (itmp->is_dep_RAW2(i_current) && !(fin & 2)) {
-	  add_dep_link(itmp, i_current, RAW);
-	  fin |= 2;
-	}
-	if (itmp->is_dep_MEM(i_current) && !(fin & 4)) {
-	  add_dep_link(itmp, i_current, MEMDEP);
-	  fin |= 4;
-	}
-	if (itmp->is_dep_WAW(i_current)) {
-	  add_dep_link(itmp, i_current, WAW);
-	  break;
-	}
-	if (itmp->is_dep_WAR(i_current))
-	  add_dep_link(itmp, i_current, WAR);
-	itmp = itmp->get_prev();
+
+      for (itmp = i_current->get_prev(); itmp ; itmp = itmp->get_prev()) {
+      	if (itmp->is_dep_RAW1(i_current) && !(fin & 1)) {
+      	  add_dep_link(itmp, i_current, RAW);
+      	  fin |= 1;
+      	}
+      	if (itmp->is_dep_RAW2(i_current) && !(fin & 2)) {
+      	  add_dep_link(itmp, i_current, RAW);
+      	  fin |= 2;
+      	}
+      	if (itmp->is_dep_MEM(i_current) && !(fin & 4)) {
+      	  add_dep_link(itmp, i_current, MEMDEP);
+      	  fin |= 4;
+      	}
+      	if (itmp->is_dep_WAW(i_current) && !(fin & 8)) {
+      	  add_dep_link(itmp, i_current, WAW);
+          fin |= 8;
+      	}
+      	if (itmp->is_dep_WAR(i_current))
+      	  add_dep_link(itmp, i_current, WAR);
       }
+
       i_current=i_current->get_prev();
     }
    
     itmp = get_last_instruction()->get_prev();
     if (itmp->is_branch()) {
       for (int i = 0; i < get_nb_inst() - 2; i++) {     
-	i_current = get_instruction_at_index(i);
-	if (i_current->get_nb_succ() == 0) 
-	  add_dep_link(itmp, i_current, CONTROL);
+    	 i_current = get_instruction_at_index(i);
+    	 if (i_current->get_nb_succ() == 0) 
+    	  add_dep_link(i_current, itmp, CONTROL);
       }
     }
     // NE PAS ENLEVER : cette fonction ne doit être appelée qu'une seule fois
@@ -411,34 +411,31 @@ void Basic_block::reset_pred_succ_dep(){
 /* calcul le nb de cycles pour executer le BB, on suppose qu'une instruction peut sortir du pipeline à chaque cycle, il faut trouver les cycles de gel induit par les dépendances */
 
 int Basic_block::nb_cycles() {
-  /*
-  Instruction *ic = get_last_instruction();
-  // int instruction = 0;
-  // int cycle = 1;
-  vector<int> inst_cycle(get_nb_inst()); 
-  for (int i = 0; i < get_nb_inst(); i++) {
-    inst_cycle[i] = 0;
-  }
-  comput_pred_succ_dep();
-  
-  inst_cycle[get_nb_inst()-1] = 1;
-  while (ic != get_first_instruction()) {
-    
-  }
-   
-  /*
-  while (ic != NULL) {
-    for (Instruction *next = ic->get_prev(); next != NULL; next = next->get_prev())
-      if (ic->is_dependant(next) == RAW) {
-	inst_cycle[instruction++] = cycle + delai(ic, next);
-	cycle += delai(ic, next);
-	break;
+
+    Instruction* ic;
+    vector<int> inst_cycle(get_nb_inst());
+    int cycle;
+    inst_cycle[0] = 1; // 1ere instruction sort au cycle 1.
+    for (int i = 1; i < get_nb_inst(); i++) {
+      //printf("Inst num : %d\n", i);
+
+      ic = get_instruction_at_index(i);
+      cycle = inst_cycle[i-1] + 1;
+      for (int j = 0; j < ic->get_nb_pred(); j++) {
+        Instruction *prev = ic->get_pred_dep(j)->inst;
+        if (ic->is_dep_WAR(prev) || ic->is_dep_RAW(prev)) {
+          //printf("Found a dep : max(%d, %d + %d)\n", cycle, inst_cycle[prev->get_index()], delai(ic->get_type(), prev->get_type()));
+          cycle = max(cycle, inst_cycle[prev->get_index()] + delai(ic->get_type(), prev->get_type()));
+        }
       }
-    cycle++;
-    ic = ic->get_prev();
+      inst_cycle[i] = cycle;
     }
-  */
-  return 0;
+    // printf("inst_cycle : [ ");
+    // for (int i = 0; i < get_nb_inst(); i++) 
+    //   printf("%d, ", inst_cycle[i]);
+    // printf("]\n");
+
+    return cycle;
 }
 
 /* 
@@ -449,10 +446,31 @@ calcule DEF et USE pour l'analyse de registre vivant
 ******************/
 
 void Basic_block::compute_use_def(void){
-  Instruction * inst = get_first_instruction();
+  //Instruction * inst = get_first_instruction();
   if (use_def_done) return;
  
-  /* A REMPLIR */
+  for (Instruction *inst = get_first_instruction(); inst != NULL; inst = inst->get_next()) {
+    if (inst->is_call()) {
+      Def[31] = 1; 
+      Def[2]  = 1;
+      for (int i = 4; i <= 6; i++) // Utilisation des registres 4, 5, 6
+        if (!Def[i])
+          Use[i] = 1;
+    }
+
+    if (OPRegister *reg_src1 = inst->get_reg_src1())
+      if (!Def[reg_src1->get_reg()])
+        Use[reg_src1->get_reg()] = 1;
+    
+    if (OPRegister *reg_src2 = inst->get_reg_src2())
+      if (!Def[reg_src2->get_reg()])
+        Use[reg_src2->get_reg()] = 1;
+
+    if (OPRegister *reg_dst = inst->get_reg_dst())
+      Def[reg_dst->get_reg()] = 1;
+
+  }
+
 
 #ifdef DEBUG  
   cout << "****** BB " << get_index() << "************" << endl;
@@ -470,7 +488,7 @@ void Basic_block::compute_use_def(void){
   cout << endl;
 #endif
 
-    return;
+  return;
 }
 
 /**** compute_def_liveout 
@@ -480,9 +498,10 @@ Si $i est défini plusieurs fois c'est l'instruction avec l'index le plus grand
 *****/
 void Basic_block::compute_def_liveout(){
   
-  Instruction * inst = get_first_instruction();
- 
-  /* A REMPLIR */
+  for (Instruction * inst = get_first_instruction(); inst ; inst = inst->get_next())
+    if (OPRegister *dest = inst->get_reg_dst())
+      if (LiveOut[dest->get_reg()])
+        DefLiveOut[dest->get_reg()] = inst->get_index();
 
 #ifdef DEBUG
   cout << "DEF LIVE OUT: " ;
@@ -501,12 +520,36 @@ void Basic_block::compute_def_liveout(){
 Utilise comme registres disponibles ceux dont le numéro est dans la liste paramètre 
 *****/
 void Basic_block::reg_rename(list<int> *frees){
-  Instruction * inst = get_first_instruction();
+
   int newr;
   compute_def_liveout();
- 
 
-  /* A REMPLIR */
+  vector<int> corres(64, -1);
+  
+  for (Instruction * inst = get_first_instruction(); inst ; inst = inst->get_next()) {
+    if (OPRegister *src1 = inst->get_reg_src1())
+      if (corres[src1->get_reg()] != -1) {
+        src1->set_reg(corres[src1->get_reg()]);
+      }
+
+    if (OPRegister *src2 = inst->get_reg_src2())
+      if (corres[src2->get_reg()] != -1)
+        src2->set_reg(corres[src2->get_reg()]);
+
+    if (!frees->empty()) {
+      if (OPRegister *dest = inst->get_reg_dst()) {
+        int nb_dest = dest->get_reg();
+        if (nb_dest == 31)
+          continue; // on ne veut pas modifier $31....
+        if (DefLiveOut[nb_dest] == -1) {
+          newr = frees->front();
+          frees->pop_front();
+          corres[nb_dest] = newr;
+          dest->set_reg(newr);
+        }
+      }
+    }
+  }
 
 }
 
@@ -515,12 +558,15 @@ void Basic_block::reg_rename(list<int> *frees){
 Utilise comme registres disponibles ceux dont le numéro est dans la liste paramètre 
 *****/
 void Basic_block::reg_rename(){
-  Instruction * inst = get_first_instruction();
-  int newr;
-  list<int> *frees, lfree;
- 
+  list<int> frees;
   
-  /* A REMPLIR */
+  for (int i = 0; i < NB_REG; i++)
+    if (! LiveIn[i] && ! Def[i]) // Notez qu'il est inutile de vérifier LiveOut qui serait redondant avec LiveIn+Def
+      frees.push_back(i);
+
+
+  reg_rename(&frees);
+  
 }
 
 void Basic_block::apply_scheduling(list <Node_dfg*> *new_order){

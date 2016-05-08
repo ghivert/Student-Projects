@@ -1,0 +1,39 @@
+Le fichier custom_main.cpp calcul 4 temps d'execution différents :
+	- sans rien avoir fait
+	- après réordonnancement
+	- après rennomage de registre 
+	- après rennomage de registre et réordonnancement
+
+Les résultats pour chaque fichiers sont les suivants :
+
+dep_inst3.s :
+ BASIC  | SCHEDULED | RENAMED | RE-SCHEDULED
+   33   |    31     |    31   |     31  
+
+dep_inst.s :
+ BASIC  | SCHEDULED | RENAMED | RE-SCHEDULED
+   22   |    21     |    21   |     21   
+
+exam_2015.s :
+ BASIC  | SCHEDULED | RENAMED | RE-SCHEDULED
+   19   |    19     |    19   |     18      
+
+ex_asm.s :
+ BASIC  | SCHEDULED | RENAMED | RE-SCHEDULED
+   42   |    41     |    41   |     41      
+
+test_asm32.s :
+ BASIC  | SCHEDULED | RENAMED | RE-SCHEDULED
+   46   |    45     |    45   |     45 
+
+Total :
+ BASIC  | SCHEDULED | RENAMED | RE-SCHEDULED
+  162   |   157     |   157   |     156  
+
+
+
+On peut en tirer les conclusions suivantes :
+	- le rennomage de registre est inutile sans réordancement (0 cycles gagnés entre les colonnes 2 et 3)
+	- aussi bien les gains du réordonnancement que tu rennomage de registre sont assez faibles (quelques % dans le meilleur de cas, rien dans le pire).
+	- le rennomage ne fait jamais perdre de cycle (ce qui peut sembler logique, mais est néanmoins important).
+	

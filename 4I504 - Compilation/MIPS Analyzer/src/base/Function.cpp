@@ -364,7 +364,9 @@ void Function::compute_dom() {
   dom_computed = true;
 }
 
+
 void Function::compute_live_var() {
+  fflush(stdout);
   list<Basic_block*>::iterator it, it2;
   list<Basic_block*> workinglist;
   Basic_block *current, *bb, *pred;
@@ -372,8 +374,42 @@ void Function::compute_live_var() {
   int size= (int) _myBB.size();
   it=_myBB.begin();
 
-  /* A COMPLETER */
+  vector<bool> computed(size, 0);
 
+  for (int i = 0; i < size; i++) {
+    if ((*it)->get_nb_succ() == 0) workinglist.push_back(*it);
+    (*it++)->compute_use_def();
+  }
+
+  while (!workinglist.empty()) {
+    current = workinglist.front();
+    workinglist.pop_front();
+    computed[current->get_index()] = 1;
+
+    // Calcul de LiveOut
+    if (current->get_nb_succ() != 0) {
+      for (int i = 0; i < NB_REG; i++) {
+        if (bb = current->get_successor1())
+          current->LiveOut[i] = current->LiveOut[i] || bb->LiveIn[i];
+        if (bb = current->get_successor2())
+          current->LiveOut[i] = current->LiveOut[i] || bb->LiveIn[i];
+      }
+    } else {
+      if (current->get_branch())
+        current->LiveOut[2] = 1;
+    }
+
+    // Calcul de LiveIn
+    for (int i = 0; i < NB_REG; i++) 
+      current->LiveIn[i] = current->Use[i] || (current->LiveOut[i] && !current->Def[i]);
+
+    // actualisation de la working list
+    for (int i = 0; i < current->get_nb_pred(); i++) {
+      pred = current->get_predecessor(i);
+      if (! computed[pred->get_index()])
+        workinglist.push_back(pred);
+    }
+  }
   
   /* AFFICHAGE DU RESULTAT */
   it2=_myBB.begin();

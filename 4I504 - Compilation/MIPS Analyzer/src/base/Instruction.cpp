@@ -460,7 +460,7 @@ dep* Instruction::get_pred_dep(int index){
 	list<dep*>::iterator it;
 	it=_pred_dep.begin();
 
-  	if(index< (int)_pred_dep.size()){
+  if(index< (int)_pred_dep.size()){
 	  for (int i=0; i<index;i++ ) it++;
 	  return *it;	
 	}
