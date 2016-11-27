@@ -1,3 +1,6 @@
+require 'readline'
+require 'pry'
+
 class WeightedException < Exception; end
 
 class Node
@@ -52,7 +55,7 @@ class Node
   end
 
   def to_s
-    weight
+    index
   end
 end
 
@@ -72,53 +75,73 @@ class Tree
     return nil if n == 0
     ind, tree = 2, Node.new(1)
     while ind <= n
+      puts "#{Tree.to_a(tree).map { |x| x.to_s }}"
       node = Node.random_weighted(tree)
+      puts "#{node.index}"
       case node.weight
       when 3
         case rand(3)
         when 0
+          puts 1
           node.left  = Node.new(ind, parent: node)
         when 1
+          puts 2
           node.right = Node.new(ind, parent: node)
         when 2
+          puts 3
           if rand(2) == 0
+            puts 3.5
             temp = Node.new(ind, left: node, parent: node.parent)
-            node.parent = temp
+            tree = temp if node.parent.nil?
             Node.set_parent(temp, temp.left)
-          else
-            temp = Node.new(ind, right: node, parent: node.parent)
             node.parent = temp
+          else
+            puts 3.7
+            temp = Node.new(ind, right: node, parent: node.parent)
+            tree = temp if node.parent.nil?
             Node.set_parent(temp, temp.right)
+            node.parent = temp
           end
         end
       when 2
         case rand(2)
         when 0
+          puts 4
           if node.left.nil?
             node.left = Node.new(ind, parent: node)
           else
             node.right = Node.new(ind, parent: node)
           end
         when 1
+          puts 5
           if rand(2) == 0
+            puts 5.3
             temp = Node.new(ind, left: node, parent: node.parent)
-            node.parent = temp
+            tree = temp if node.parent.nil?
             Node.set_parent(temp, temp.left)
-          else
-            temp = Node.new(ind, right: node, parent: node.parent)
             node.parent = temp
+          else
+            puts 5.6
+            temp = Node.new(ind, right: node, parent: node.parent)
+            tree = temp if node.parent.nil?
             Node.set_parent(temp, temp.right)
+            node.parent = temp
           end
         end
       when 1
+        puts 6
         if rand(2) == 0
+          puts 6.3
           temp = Node.new(ind, left: node, parent: node.parent)
-          node.parent = temp
+          tree = temp if node.parent.nil?
           Node.set_parent(temp, temp.left)
-        else
-          temp = Node.new(ind, right: node, parent: node.parent)
           node.parent = temp
+        else
+          puts 6.6
+          temp = Node.new(ind, right: node, parent: node.parent)
+          tree = temp if node.parent.nil?
           Node.set_parent(temp, temp.right)
+          node.parent = temp
         end
       end
       ind += 1
