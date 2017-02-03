@@ -1,0 +1,4 @@
+#! /bin/bash
+
+echo "SDLFLAGS = `sdl2-config --cflags`" >> configure.in
+echo "SDLLIBS = `sdl2-config --libs`" >> configure.in

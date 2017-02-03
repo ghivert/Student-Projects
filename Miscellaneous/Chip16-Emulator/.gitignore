@@ -1,0 +1,5 @@
+*~
+configure.in
+graphics
+*.o
+lib/*
