@@ -14,7 +14,7 @@ global.ready = { 'ready': false }
 
 const quit_debug = true
 var win
-
+console.log(global);
 // Creating GUI.
 function createWindow() {
   global.mainWindow = new BrowserWindow({
